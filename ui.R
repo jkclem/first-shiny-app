@@ -1,7 +1,10 @@
-
+###
+#
+###
 
 library(shiny)
 library(shinyWidgets)
+library(shinythemes)
 library(DT)
 library(readr)
 library(tidyverse)
@@ -18,7 +21,9 @@ countyData <- read_csv(paste0(location, fileName),
 # Define UI.
 shinyUI(navbarPage(
     
-    titlePanel("Tabsets"),
+    title = "2016 County-Level Demographics and Presidential Electoral Results",
+    
+    theme = shinytheme("darkly"),
     
     tabsetPanel(
         tabPanel(title="About",
@@ -36,11 +41,17 @@ shinyUI(navbarPage(
                  sidebarPanel(
                      selectInput(
                          inputId = "histVar",
-                         label = "Histogram Variables",
+                         label = "Variable",
                          choices = colnames(countyData)[3:35]
                      ),
+                     numericInput(inputId = "bins",
+                                  label = "Number of Bins",
+                                  value = 30,
+                                  min = 5,
+                                  max = 100,
+                                  step = 5),
                      checkboxInput(inputId = "histLogScale", 
-                                   label = "Log Scale", 
+                                   label = "Apply Natural Logarithm", 
                                    value = FALSE
                      )
                  

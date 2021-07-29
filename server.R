@@ -30,8 +30,9 @@ shinyServer(function(input, output, session) {
     })
     
     output$myHistogram <- renderPlot({
-      histLogScale <- input$histLogScale
       histVar <- input$histVar
+      bins <- input$bins
+      histLogScale <- input$histLogScale
       
       if (histLogScale) {
         histPlot <- countyData %>%
@@ -39,13 +40,13 @@ shinyServer(function(input, output, session) {
             tempVar = pull(log(countyData[, histVar]))
           ) %>%
           ggplot(aes(tempVar)) + 
-          geom_histogram(bins=30, fill="purple", color="black") + 
-          scale_x_continuous(paste0("log(", histVar, ")")) +
+          geom_histogram(bins=bins, fill="purple", color="black") + 
+          scale_x_continuous(paste0("ln(", histVar, ")")) +
           scale_y_continuous("Frequency") + 
-          ggtitle(paste0("Histogram of log(", histVar, ")"))
+          ggtitle(paste0("Histogram of ln(", histVar, ")"))
       } else {
         histPlot <- ggplot(countyData, aes_string(histVar)) + 
-          geom_histogram(bins=30, fill="purple", color="black") + 
+          geom_histogram(bins=bins, fill="purple", color="black") + 
           scale_y_continuous("Frequency") + 
           ggtitle(paste0("Histogram of ", histVar))
       }
