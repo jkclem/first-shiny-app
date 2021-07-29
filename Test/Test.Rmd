@@ -1,0 +1,150 @@
+---
+title: "Test"
+author: "John Clements"
+date: "7/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readr)
+library(plotly)
+library(GGally)
+```
+
+
+# I.
+
+```{r}
+# Set the path to the file.
+location <- "./Data/"
+# Set the file name.
+fileName <- "2016 Electoral and Demographic Data - County Level.csv"
+
+# Read in the data.
+countyData <- read_csv(paste0(location, fileName),
+                      col_types=cols())
+```
+
+```{r}
+input <- list()
+input$histLogScale <- TRUE
+input$histVar <- "TotalPop"
+input$scatterVarXLogScale <- FALSE
+input$scatterVarYLogScale <- FALSE
+input$scatterVarX <- "Black"
+input$scatterVarY <- "PercentClinton"
+input$addRegression <- TRUE
+```
+
+# Data
+
+```{r}
+countyData
+```
+
+
+# Data Exploration
+
+```{r}
+countyData %>%
+  filter(State == "Alabama")
+```
+
+
+## Histogram
+
+```{r}
+histLogScale <- input$histLogScale
+histVar <- input$histVar
+
+if (histLogScale) {
+  histPlot <- countyData %>%
+    mutate(
+      tempVar = pull(log(countyData[, histVar]))
+    ) %>%
+    ggplot(aes(tempVar)) + 
+    geom_histogram(bins=30, fill="purple", color="black") + 
+    scale_x_continuous(paste0("log(", histVar, ")")) +
+    scale_y_continuous("Frequency") + 
+    ggtitle(paste0("Histogram of log(", histVar, ")"))
+} else {
+  histPlot <- ggplot(countyData, aes_string(histVar)) + 
+    geom_histogram(bins=30, fill="purple", color="black") + 
+    scale_y_continuous("Frequency") + 
+    ggtitle(paste0("Histogram of ", histVar))
+}
+
+histPlot
+```
+
+## Scatter Plot
+
+```{r}
+scatterVarXLogScale <- input$scatterVarXLogScale 
+scatterVarYLogScale <- input$scatterVarYLogScale
+scatterVarX <- input$scatterVarX 
+scatterVarY <- input$scatterVarY
+addRegression <- input$addRegression
+
+if (scatterVarXLogScale & scatterVarYLogScale) {
+  scatterPlot <- countyData %>%
+    mutate(
+      tempVarX = pull(log(countyData[, scatterVarX])),
+      tempVarY = pull(log(countyData[, scatterVarY]))
+    ) %>%
+    ggplot(aes(tempVarX, tempVarY)) + 
+    geom_point(color="purple", alpha=0.33) + 
+    scale_x_continuous(paste0("log(", scatterVarX, ")")) +
+    scale_y_continuous(paste0("log(", scatterVarY, ")")) + 
+    ggtitle(paste0("Scatter Plot of log(", 
+                   scatterVarX, ") vs. log(", scatterVarY, ")"))
+} else if (scatterVarXLogScale & !scatterVarYLogScale) {
+  scatterPlot <- countyData %>%
+    mutate(
+      tempVarX = pull(log(countyData[, scatterVarX]))
+    ) %>%
+    ggplot(aes(x=tempVarX)) + 
+    geom_point(aes_string(y=scatterVarY), color="purple", alpha=0.33) + 
+    scale_x_continuous(paste0("log(", scatterVarX, ")")) +
+    scale_y_continuous(scatterVarY) + 
+    ggtitle(paste0("Scatter Plot of log(", 
+                   scatterVarX, ") vs. ", scatterVarY))
+} else if (!scatterVarXLogScale & scatterVarYLogScale) {
+  scatterPlot <- countyData %>%
+    mutate(
+      tempVarY = pull(log(countyData[, scatterVarY]))
+    ) %>%
+    ggplot(aes(y=tempVarY)) + 
+    geom_point(aes_string(x=scatterVarX), color="purple", alpha=0.33) + 
+    scale_x_continuous(scatterVarX) +
+    scale_y_continuous(paste0("log(", scatterVarY, ")")) + 
+    ggtitle(paste0("Scatter Plot of ", 
+                   scatterVarX, " vs. log(", scatterVarY, ")"))
+} else {
+  scatterPlot <- countyData %>%
+    ggplot(aes_string(x=scatterVarX, y=scatterVarY)) + 
+    geom_point(color="purple", alpha=0.33) + 
+    scale_x_continuous(scatterVarX) +
+    scale_y_continuous(scatterVarY) + 
+    ggtitle(paste0("Scatter Plot of ", 
+                   scatterVarX, " vs. ", scatterVarY))
+}
+
+if (addRegression) {
+  scatterPlot <- scatterPlot +
+  geom_smooth(color="grey20")
+}
+suppressMessages(ggplotly(scatterPlot)) 
+```
+
+
+
+
+
+
+
