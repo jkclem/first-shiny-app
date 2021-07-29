@@ -8,19 +8,50 @@
 #
 
 library(shiny)
+library(shinyWidgets)
+library(DT)
+library(readr)
+library(tidyverse)
+
+# Set the path to the file.
+location <- "./Data/"
+# Set the file name.
+fileName <- "2016 Electoral and Demographic Data - County Level.csv"
+
+# Read in the data.
+countyData <- read_csv(paste0(location, fileName),
+                       col_types=cols())
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 
-    output$distPlot <- renderPlot({
-
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-
+    output$tab <- renderDataTable({
+        countyData
     })
-
+    
+    output$myHistogram <- renderPlot({
+      histLogScale <- input$histLogScale
+      histVar <- input$histVar
+      
+      if (histLogScale) {
+        histPlot <- countyData %>%
+          mutate(
+            tempVar = pull(log(countyData[, histVar]))
+          ) %>%
+          ggplot(aes(tempVar)) + 
+          geom_histogram(bins=30, fill="purple", color="black") + 
+          scale_x_continuous(paste0("log(", histVar, ")")) +
+          scale_y_continuous("Frequency") + 
+          ggtitle(paste0("Histogram of log(", histVar, ")"))
+      } else {
+        histPlot <- ggplot(countyData, aes_string(histVar)) + 
+          geom_histogram(bins=30, fill="purple", color="black") + 
+          scale_y_continuous("Frequency") + 
+          ggtitle(paste0("Histogram of ", histVar))
+      }
+      
+      histPlot
+    })
+    
+    return(output)
 })
