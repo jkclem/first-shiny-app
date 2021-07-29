@@ -37,31 +37,39 @@ shinyUI(navbarPage(
                  )
              ),
     tabPanel(title = "Data Exploration",
-             sidebarLayout(
                  sidebarPanel(
-                     selectInput(
-                         inputId = "histVar",
-                         label = "Variable",
-                         choices = colnames(countyData)[3:35]
+                     radioButtons(
+                         inputId = "plotType",
+                         label = "Plot Type",
+                         choiceValues = c("histogram", "scatterPlot"),
+                         choiceNames = c("Histogram", "Scatter Plot"),
+                         selected = "histogram",
+                         inline = TRUE,
                      ),
-                     numericInput(inputId = "bins",
-                                  label = "Number of Bins",
-                                  value = 30,
-                                  min = 5,
-                                  max = 100,
-                                  step = 5),
-                     checkboxInput(inputId = "histLogScale", 
-                                   label = "Apply Natural Logarithm", 
-                                   value = FALSE
-                     )
+                     # Only show this panel if the plot type is a histogram
+                     conditionalPanel(
+                         condition = "input.plotType == 'histogram'",
+                         selectInput(
+                             inputId = "histVar",
+                             label = "Variable",
+                             choices = colnames(countyData)[3:35]),
+                         numericInput(inputId = "bins",
+                                      label = "Number of Bins",
+                                      value = 30,
+                                      min = 5,
+                                      max = 100,
+                                      step = 5),
+                         checkboxInput(inputId = "histLogScale", 
+                                       label = "Apply Natural Logarithm", 
+                                       value = FALSE)
                  
-             ),
+             )),
              mainPanel(
-                 plotOutput("myHistogram")
+                 plotOutput("plot")
              )
              )
     )
     )
-))
+)
 
 

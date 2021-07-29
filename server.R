@@ -29,29 +29,39 @@ shinyServer(function(input, output, session) {
         countyData
     })
     
-    output$myHistogram <- renderPlot({
-      histVar <- input$histVar
-      bins <- input$bins
-      histLogScale <- input$histLogScale
+    output$plot <- renderPlot({
+      plotType <- input$plotType
       
-      if (histLogScale) {
-        histPlot <- countyData %>%
-          mutate(
-            tempVar = pull(log(countyData[, histVar]))
-          ) %>%
-          ggplot(aes(tempVar)) + 
-          geom_histogram(bins=bins, fill="purple", color="black") + 
-          scale_x_continuous(paste0("ln(", histVar, ")")) +
-          scale_y_continuous("Frequency") + 
-          ggtitle(paste0("Histogram of ln(", histVar, ")"))
-      } else {
-        histPlot <- ggplot(countyData, aes_string(histVar)) + 
-          geom_histogram(bins=bins, fill="purple", color="black") + 
-          scale_y_continuous("Frequency") + 
-          ggtitle(paste0("Histogram of ", histVar))
+      # If the plot type is a histogram, display a histogram.
+      if (plotType == "histogram"){
+        
+        # Extract the input variables associated with the histogram.
+        histVar <- input$histVar
+        bins <- input$bins
+        histLogScale <- input$histLogScale
+        
+        # If the user wants the histogram of ln(variable), display that.
+        if (histLogScale) {
+          myPlot <- countyData %>%
+            mutate(
+              tempVar = pull(log(countyData[, histVar]))
+            ) %>%
+            ggplot(aes(tempVar)) + 
+            geom_histogram(bins=bins, fill="purple", color="black") + 
+            scale_x_continuous(paste0("ln(", histVar, ")")) +
+            scale_y_continuous("Frequency") + 
+            ggtitle(paste0("Histogram of ln(", histVar, ")"))
+          
+          # Otherwise, just return a histogram of the variable.
+        } else {
+          myPlot <- ggplot(countyData, aes_string(histVar)) + 
+            geom_histogram(bins=bins, fill="purple", color="black") + 
+            scale_y_continuous("Frequency") + 
+            ggtitle(paste0("Histogram of ", histVar))
+        }
       }
       
-      histPlot
+      myPlot
     })
     
     return(output)
