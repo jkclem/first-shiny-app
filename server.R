@@ -190,6 +190,28 @@ shinyServer(function(input, output, session) {
     ggplotly(scatterPlot)
       
   })
+  
+  output$numericSummary <- renderDT({
+    
+    # Extract the selected states, winner, and columns.
+    selectedStatesDE <- unlist(input$selectedStatesDE)
+    selectedWinnerDE <- unlist(input$selectedWinnerDE)
+    # Extract the variables to show.
+    numericVars <- unlist(input$numericVars)
+    
+    # Filter for the rows of interest.
+    filteredCountyData <- countyData %>%
+      filter(
+        State %in% selectedStatesDE,
+        Winner %in% selectedWinnerDE
+      ) %>%
+      select(numericVars)
+    
+    numericSummary <- do.call(cbind, lapply(filteredCountyData, summary))
+    
+    as.data.frame(t(numericSummary))
+    
+  })
     
   return(output)
   

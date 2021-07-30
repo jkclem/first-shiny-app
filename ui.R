@@ -162,6 +162,9 @@ shinyUI(navbarPage(
         tabPanel(title = "Data Exploration",
                  sidebarPanel(
                      
+                     # Add a header for this sidebar area.
+                     h3("Universal Parameters"),
+                     
                      # Create a filter for the states of interest.
                      selectInput(
                          inputId = "selectedStatesDE",
@@ -183,6 +186,10 @@ shinyUI(navbarPage(
                          size=2
                      ),
                      
+                     # Add a header for this sidebar portion.
+                     h3("Visualization Parameters"),
+                     
+                     # Create buttons to choose the plot type.
                      radioButtons(
                          inputId = "plotType",
                          label = "Plot Type",
@@ -191,9 +198,13 @@ shinyUI(navbarPage(
                          selected = "histogram",
                          inline = TRUE
                          ),
+                     
                      # Only show this panel if the plot type is a histogram.
                      conditionalPanel(
                          condition = "input.plotType == 'histogram'",
+                         
+                         # Accept user inputs to modify the histogram.
+                         
                          selectInput(
                              inputId = "histVar",
                              label = "Variable",
@@ -213,15 +224,18 @@ shinyUI(navbarPage(
                              value = FALSE
                              )
                          ),
+                     
                      # Only show this panel if the plot type is a scatter plot.
                      conditionalPanel(
                          condition = "input.plotType == 'scatterPlot'",
+                         
+                         # Accept user inputs to modify the scatter plot.
+                         
                          selectInput(
                              inputId = "varX",
                              label = "X Variable",
                              choices = colnames(countyData)[3:35]
                              ),
-                         
                          checkboxInput(
                              inputId = "varXLogScale",
                              label = "Apply Natural Logarithm to X",
@@ -246,6 +260,29 @@ shinyUI(navbarPage(
                              selected = FALSE,
                              inline = TRUE
                              )
+                         ),
+                     
+                     # Choose whether to report numeric summaries of discrete.
+                     radioButtons(
+                         inputId = "summaryType",
+                         label = "Summary Type",
+                         choiceValues = c("numeric", "categorical"),
+                         choiceNames = c("Numeric", "Categorical"),
+                         selected = "",
+                         inline = TRUE
+                     ),
+                     
+                     # Only show this panel if the summary type is numeric.
+                     conditionalPanel(
+                         condition = "input.summaryType == 'numeric'",
+                         selectInput(
+                             inputId = "numericVars",
+                             label = "Variable(s) to Summarize",
+                             choices = colnames(countyData)[3:35],
+                             selected = colnames(countyData)[3:35],
+                             multiple = TRUE,
+                             selectize = FALSE
+                             )
                          )
                      ),
                  mainPanel(
@@ -256,6 +293,14 @@ shinyUI(navbarPage(
                      conditionalPanel(
                          condition = "input.plotType == 'scatterPlot'",
                          plotlyOutput("scatter")
+                         ),
+                     conditionalPanel(
+                         condition = "input.summaryType == numeric",
+                         dataTableOutput("numericSummary")
+                         ),
+                     conditionalPanel(
+                         condition = "input.summaryType == categorical",
+                         fluidPage()
                          )
                      )
                  )

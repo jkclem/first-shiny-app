@@ -44,7 +44,69 @@ input$addRegression <- TRUE
 # Data
 
 ```{r}
-countyData
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, mean, na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, sd, na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, min, na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, quantile, probs=c(0.25), na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, quantile, probs=c(0.5), na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, quantile, probs=c(0.75), na.rm=TRUE)
+
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  ) %>%
+  summarize_if(is.numeric, max, na.rm=TRUE)
+```
+
+
+```{r}
+filteredCountyData <- countyData %>%
+  filter(
+    State %in% c("Georgia"),
+    Winner %in% c("Trump")
+  )
+
+numericSummary <- do.call(cbind, lapply(filteredCountyData[,3:35], summary))
+
+numericSummary <- as.data.frame(t(numericSummary))
+
+numericSummary[c("TotalPop"), ] 
 ```
 
 
