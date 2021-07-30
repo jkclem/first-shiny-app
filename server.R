@@ -7,6 +7,8 @@ library(shinyWidgets)
 library(DT)
 library(readr)
 library(tidyverse)
+library(imager)
+library(plotly)
 
 # Set the path to the file.
 location <- "./Data/"
@@ -19,6 +21,10 @@ countyData <- read_csv(paste0(location, fileName),
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
+  
+  ###
+  # Data Tab
+  ###
   
   # Create a data table output.
   output$tab <- renderDataTable({

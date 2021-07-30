@@ -8,11 +8,16 @@ library(shinythemes)
 library(DT)
 library(readr)
 library(tidyverse)
+library(plotly)
 
 # Set the path to the file.
 location <- "./Data/"
 # Set the file name.
 fileName <- "2016 Electoral and Demographic Data - County Level.csv"
+
+# Get the location and name of the image for the About tab.
+imageName <- paste0("2016_Nationwide_US_presidential_county_map_shaded_by_",
+                    "vote_share.png")
 
 # Read in the data.
 countyData <- read_csv(paste0(location, fileName),
@@ -38,6 +43,13 @@ shinyUI(navbarPage(
         # Create a tab for the about section.
         tabPanel(title="About",
                  mainPanel(
+                     
+                     img(
+                         src = imageName, 
+                         height = '406px', 
+                         width = '640px'
+                         ),
+                     
                      # Add a section telling the user what this app is for.
                      h3("The Purpose of this App"),
                      "This app is to explore the relationship between ",
