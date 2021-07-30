@@ -29,15 +29,21 @@ shinyServer(function(input, output, session) {
   # Create a data table output.
   output$tab <- renderDataTable({
     
-    # Extract the selected States and Winner.
+    # Extract the selected states, winner, and columns.
     selectedStates <- unlist(input$selectedStates)
     selectedWinner <- unlist(input$selectedWinner)
+    selectedCols <- unlist(input$selectedCols)
     
     # Filter the data based on user input.
     countyData %>%
       filter(State %in% selectedStates,
-             Winner %in% selectedWinner)
+             Winner %in% selectedWinner) %>%
+      select(selectedCols)
     })
+  
+  ###
+  # Data Exploration Tab
+  ###
   
   # Create the output plot for the Data Exploration tab.
   output$histogram <- renderPlot({
@@ -47,14 +53,23 @@ shinyServer(function(input, output, session) {
     bins <- input$bins
     histLogScale <- input$histLogScale
     
+    # Extract the selected states, winner, and columns.
+    selectedStatesDE <- unlist(input$selectedStatesDE)
+    selectedWinnerDE <- unlist(input$selectedWinnerDE)
+    
+    # Filter the data based on user input.
+    filteredCountyData <- countyData %>%
+      filter(State %in% selectedStatesDE,
+             Winner %in% selectedWinnerDE)
+    
     # If the user wants the histogram of ln(variable), display that.
     if (histLogScale) {
       
       # Create the histogram for ln(variable).
-      myPlot <- countyData %>%
+      myPlot <- filteredCountyData %>%
         # Create a temporay column that is the natural log of the variable.
         mutate(
-          tempVar = pull(log(countyData[, histVar]))
+          tempVar = pull(log(filteredCountyData[, histVar]))
           ) %>%
         # Create the histogram.
         ggplot(aes(tempVar)) + 
@@ -68,7 +83,7 @@ shinyServer(function(input, output, session) {
     } else {
       
       # Create the histogram for the variable.
-      myPlot <- ggplot(countyData, aes_string(histVar)) + 
+      myPlot <- ggplot(filteredCountyData, aes_string(histVar)) + 
         geom_histogram(bins=bins, fill="purple", color="black") + 
         # Change the y-axis label and a title.
         scale_y_continuous("Frequency") + 
@@ -90,14 +105,23 @@ shinyServer(function(input, output, session) {
     varY <- input$varY
     addRegression <- input$addRegression
     
+    # Extract the selected states, winner, and columns.
+    selectedStatesDE <- unlist(input$selectedStatesDE)
+    selectedWinnerDE <- unlist(input$selectedWinnerDE)
+    
+    # Filter the data based on user input.
+    filteredCountyData <- countyData %>%
+      filter(State %in% selectedStatesDE,
+             Winner %in% selectedWinnerDE)
+    
     # Execute if both are on the natural log scale.
     if (varXLogScale & varYLogScale) {
       
-      scatterPlot <- countyData %>%
+      scatterPlot <- filteredCountyData %>%
         # Log transform both variables.
         mutate(
-          logVarX = pull(log(countyData[, varX])),
-          logVarY = pull(log(countyData[, varY]))
+          logVarX = pull(log(filteredCountyData[, varX])),
+          logVarY = pull(log(filteredCountyData[, varY]))
           ) %>%
         # Create the scatter plot with semi-opaque purple dots.
         ggplot(aes(logVarX, logVarY)) + 
@@ -111,10 +135,10 @@ shinyServer(function(input, output, session) {
     # Execute if only X is on the log scale.
     } else if (varXLogScale & !varYLogScale) {
       
-      scatterPlot <- countyData %>%
+      scatterPlot <- filteredCountyData %>%
         # Log transform the X variable.
         mutate(
-          "logVarX" = pull(log(countyData[, varX]))
+          "logVarX" = pull(log(filteredCountyData[, varX]))
           ) %>%
         # Create the scatter plot with semi-opaque purple dots.
         ggplot(aes_string(x="logVarX", y=varY)) + 
@@ -128,10 +152,10 @@ shinyServer(function(input, output, session) {
     # Execute if only Y is on the log scale.
     } else if (!varXLogScale & varYLogScale) {
       
-      scatterPlot <- countyData %>%
+      scatterPlot <- filteredCountyData %>%
         # Log transform the Y variable.
         mutate(
-          "logVarY" = pull(log(countyData[, varY]))
+          "logVarY" = pull(log(filteredCountyData[, varY]))
           ) %>%
         # Create the scatter plot with semi-opaque purple dots.
         ggplot(aes_string(x=varX, y="logVarY")) + 
@@ -145,7 +169,7 @@ shinyServer(function(input, output, session) {
     # Execute if both variables are "un-logged".
     } else {
       
-      scatterPlot <- countyData %>%
+      scatterPlot <- filteredCountyData %>%
         # Create the scatter plot with semi-opaque purple dots.
         ggplot(aes_string(x=varX, y=varY)) + 
         geom_point(color="purple", alpha=0.33) + 

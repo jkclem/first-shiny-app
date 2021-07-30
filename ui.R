@@ -141,6 +141,16 @@ shinyUI(navbarPage(
                          multiple = TRUE,
                          selectize = FALSE,
                          size=2
+                     ),
+                     # Create a filter for the columns to display.
+                     selectInput(
+                         inputId = "selectedCols",
+                         label = "Filter Columns",
+                         choices = colnames(countyData),
+                         selected = colnames(countyData),
+                         multiple = TRUE,
+                         selectize = FALSE,
+                         size=8
                      )
                  ),
             
@@ -151,6 +161,28 @@ shinyUI(navbarPage(
         
         tabPanel(title = "Data Exploration",
                  sidebarPanel(
+                     
+                     # Create a filter for the states of interest.
+                     selectInput(
+                         inputId = "selectedStatesDE",
+                         label = "Filter by State(s)",
+                         choices = unique(countyData$State),
+                         selected = unique(countyData$State),
+                         multiple = TRUE,
+                         selectize = FALSE,
+                         size=5
+                     ),
+                     # Create a filter for the counties to display by winner.
+                     selectInput(
+                         inputId = "selectedWinnerDE",
+                         label = "Filter by Winner(s)",
+                         choices = c("Clinton", "Trump"),
+                         selected = c("Clinton", "Trump"),
+                         multiple = TRUE,
+                         selectize = FALSE,
+                         size=2
+                     ),
+                     
                      radioButtons(
                          inputId = "plotType",
                          label = "Plot Type",
