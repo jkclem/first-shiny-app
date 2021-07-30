@@ -114,9 +114,15 @@ countyData %>%
   filter(
     State %in% c("Georgia"),
   ) %>%
-  select(Winner, County) %>%
+  select(Winner, County, TotalPop) %>%
   group_by(Winner) %>%
-  count(name="Counties Won")
+  summarize(
+    "Counties Won" = length(County),
+    "Total Population" = sum(TotalPop)
+    ) %>%
+  mutate(
+    "Population Density" = `Total Population` / `Counties Won`
+  )
 
 ```
 

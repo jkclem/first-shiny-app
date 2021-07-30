@@ -289,7 +289,19 @@ shinyUI(navbarPage(
                              multiple = TRUE,
                              selectize = FALSE
                              )
+                         ),
+                     # Only show this panel if the summary type is countiesWon.
+                     conditionalPanel(
+                         condition = "input.summaryType == 'countiesWon'",
+                         numericInput(
+                             inputId = "popDensRounding",
+                             label = "Number of Digits for Pop. Density",
+                             value = 2,
+                             min = 0,
+                             max = 10,
+                             step = 1
                          )
+                     )
                      ),
                  mainPanel(
                      conditionalPanel(

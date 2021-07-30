@@ -215,17 +215,26 @@ shinyServer(function(input, output, session) {
   
   output$countiesWonTable <- renderDT({
     
-    # Extract the selected states, winner, and columns.
+    # Extract the selected states, and number of digits to round.
     selectedStatesDE <- unlist(input$selectedStatesDE)
+    popDensRounding <- unlist(input$popDensRounding)
     
-    # Count the counties won by each candidate in the states selected.
+    # Count the counties won, the total population in those counties, and the
+    # population density by each candidate in the states selected.
     countyData %>%
       filter(
         State %in% selectedStatesDE,
       ) %>%
-      select(Winner, County) %>%
+      select(Winner, County, TotalPop) %>%
       group_by(Winner) %>%
-      count(name="Counties Won")
+      summarize(
+        "Counties Won" = length(County),
+        "Total Population" = sum(TotalPop)
+      ) %>%
+      mutate(
+        "Population Density" = round(`Total Population` / `Counties Won`,
+                                     popDensRounding)
+      )
     
   })
     
