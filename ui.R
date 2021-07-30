@@ -41,52 +41,113 @@ shinyUI(navbarPage(
     tabsetPanel(
         
         # Create a tab for the about section.
-        tabPanel(title="About",
-                 mainPanel(
+        tabPanel(
+            
+            # Add a title.
+            title="About",
+            
+            mainPanel(
+                # Load in an image of US counties color coded by how they
+                # voted in 2016.
+                img(
+                    src = imageName, 
+                    height = '406px', 
+                    width = '640px'
+                    ),
+                
+                # Add a section telling the user what this app is for.
+                h3("The Purpose of this App"),
+                
+                "This app explores the relationship between ",
+                "demographic data and electoral outcomes in the ",
+                "2016 presidential election at a county level.",
+                
+                
+                # Add a section discussing the data.
+                h3("The Data"),
+                
+                "The demographic data is from the 2015 American ",
+                "Community Survey (ACS) 5-year estimates. I retrieved it ",
+                "from  ",
+                a(href = acsDataLink, "here"),
+                ". I actually downloaded the census tract level data in ",
+                "2019 and aggregated it up to the county level myself.",
+                "The ACS includes demographic variables related to the ",
+                "gender and ethnic composition, size, and economic ",
+                "situation of an area.",
+                
+                # Add a line break.
+                br(),
+                br(),
+                
+                "The county level 2016 presidential vote shares were ",
+                "taken from ",
+                a(href=voteDataLink,
+                  "here"),
+                ". Unfortunately, there isn't county-level vote share ",
+                "data available for Alaska in this data set. This ", 
+                "analysis is restricted to the continental 48 + Hawaii.",
+                
+                
+                # Add a section discussing the tabs.
+                h3("The Tabs"),
+                
+                tags$ul(
+                    tags$li(
+                        "Data: Shows the raw data"
+                        ), 
+                    tags$li(
+                        "Data Exploration: Visualizes and summarizes the ",
+                        "data"
+                        ), 
+                    tags$li(
+                        "Modeling: Evaluates various models on ", 
+                        "predicting electoral outcomes"
+                        )
+                    ),
+                
+                # Add line breaks to extend the page.
+                br(),
+                br(),
+                br()
+                )
+            ),
+        
+        # Create the Data page.
+        tabPanel(
+            
+            # Add a title.
+            title="Data",
+                 
+                 # Create a side panel.
+                 sidebarPanel(
                      
-                     img(
-                         src = imageName, 
-                         height = '406px', 
-                         width = '640px'
+                     # Create a filter for the states of interest.
+                     selectInput(
+                         inputId = "selectedStates",
+                         label = "Filter by State(s)",
+                         choices = unique(countyData$State),
+                         selected = unique(countyData$State),
+                         multiple = TRUE,
+                         selectize = FALSE,
+                         size=5
                          ),
-                     
-                     # Add a section telling the user what this app is for.
-                     h3("The Purpose of this App"),
-                     "This app is to explore the relationship between ",
-                     "demographic data and electoral outcomes in the ",
-                     "2016 presidential election at a county level.",
-                     
-                     # Add a section discussing the data.
-                     h3("The Data"),
-                     "The demographic data is from the 2015 American ",
-                     "Community Survey (ACS) 5-year estimates. I retrieved it ",
-                     "from  ",
-                     a(href = acsDataLink, "here"),
-                     ". I actually downloaded the census tract level data in ",
-                     "2019 and aggregated it up to the county level myself.",
-                     "The ACS includes demographic variables related to the ",
-                     "gender and ethnic composition, size, and economic ",
-                     "situation of an area.",
-                     # Add a line break.
-                     br(),
-                     br(),
-                     "The county level 2016 presidential vote shares were ",
-                     "taken from ",
-                     a(href=voteDataLink,
-                       "here"),
-                     ". Unfortunately, there isn't county-level vote share ",
-                     "data available for Alaska in this data set. This ", 
-                     "analysis is restricted to the continental 48 + Hawaii.",
-                     
-                     h3("The Tabs")
-                     )
-                ),
-        tabPanel(title="Data",
-                 mainPanel(
-                     dataTableOutput(outputId = "tab")
+                     # Create a filter for the counties to display by winner.
+                     selectInput(
+                         inputId = "selectedWinner",
+                         label = "Filter by Winner(s)",
+                         choices = c("Clinton", "Trump"),
+                         selected = c("Clinton", "Trump"),
+                         multiple = TRUE,
+                         selectize = FALSE,
+                         size=2
                      )
                  ),
-        
+            
+            mainPanel(
+                dataTableOutput(outputId = "tab")
+                )
+            ),
         
         tabPanel(title = "Data Exploration",
                  sidebarPanel(
@@ -164,7 +225,7 @@ shinyUI(navbarPage(
                          condition = "input.plotType == 'scatterPlot'",
                          plotlyOutput("scatter")
                          )
-                     ),
+                     )
                  )
         )
     )

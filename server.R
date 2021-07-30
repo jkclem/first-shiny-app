@@ -28,7 +28,15 @@ shinyServer(function(input, output, session) {
   
   # Create a data table output.
   output$tab <- renderDataTable({
-    countyData
+    
+    # Extract the selected States and Winner.
+    selectedStates <- unlist(input$selectedStates)
+    selectedWinner <- unlist(input$selectedWinner)
+    
+    # Filter the data based on user input.
+    countyData %>%
+      filter(State %in% selectedStates,
+             Winner %in% selectedWinner)
     })
   
   # Create the output plot for the Data Exploration tab.
