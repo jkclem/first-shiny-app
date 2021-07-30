@@ -191,7 +191,7 @@ shinyServer(function(input, output, session) {
       
   })
   
-  output$numericSummary <- renderDT({
+  output$numericSummaryTable <- renderDT({
     
     # Extract the selected states, winner, and columns.
     selectedStatesDE <- unlist(input$selectedStatesDE)
@@ -210,6 +210,22 @@ shinyServer(function(input, output, session) {
     numericSummary <- do.call(cbind, lapply(filteredCountyData, summary))
     
     as.data.frame(t(numericSummary))
+    
+  })
+  
+  output$countiesWonTable <- renderDT({
+    
+    # Extract the selected states, winner, and columns.
+    selectedStatesDE <- unlist(input$selectedStatesDE)
+    
+    # Count the counties won by each candidate in the states selected.
+    countyData %>%
+      filter(
+        State %in% selectedStatesDE,
+      ) %>%
+      select(Winner, County) %>%
+      group_by(Winner) %>%
+      count(name="Counties Won")
     
   })
     

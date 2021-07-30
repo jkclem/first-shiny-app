@@ -109,6 +109,17 @@ numericSummary <- as.data.frame(t(numericSummary))
 numericSummary[c("TotalPop"), ] 
 ```
 
+```{r}
+countyData %>%
+  filter(
+    State %in% c("Georgia"),
+  ) %>%
+  select(Winner, County) %>%
+  group_by(Winner) %>%
+  count(name="Counties Won")
+
+```
+
 
 # Data Exploration
 

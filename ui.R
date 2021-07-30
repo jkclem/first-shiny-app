@@ -162,6 +162,9 @@ shinyUI(navbarPage(
         tabPanel(title = "Data Exploration",
                  sidebarPanel(
                      
+                     # Set the width.
+                     width = 4,
+                     
                      # Add a header for this sidebar area.
                      h3("Universal Parameters"),
                      
@@ -262,12 +265,15 @@ shinyUI(navbarPage(
                              )
                          ),
                      
+                     # Add a header for this sidebar portion.
+                     h3("Summary Table Parameters"),
+                     
                      # Choose whether to report numeric summaries of discrete.
                      radioButtons(
                          inputId = "summaryType",
                          label = "Summary Type",
-                         choiceValues = c("numeric", "categorical"),
-                         choiceNames = c("Numeric", "Categorical"),
+                         choiceValues = c("numeric", "countiesWon"),
+                         choiceNames = c("Numeric", "Counties Won"),
                          selected = "",
                          inline = TRUE
                      ),
@@ -295,12 +301,12 @@ shinyUI(navbarPage(
                          plotlyOutput("scatter")
                          ),
                      conditionalPanel(
-                         condition = "input.summaryType == numeric",
-                         dataTableOutput("numericSummary")
+                         condition = "input.summaryType == 'numeric'",
+                         dataTableOutput("numericSummaryTable")
                          ),
                      conditionalPanel(
-                         condition = "input.summaryType == categorical",
-                         fluidPage()
+                         condition = "input.summaryType == 'countiesWon'",
+                         dataTableOutput("countiesWonTable")
                          )
                      )
                  )
