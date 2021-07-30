@@ -46,7 +46,7 @@ shinyUI(navbarPage(
                          selected = "histogram",
                          inline = TRUE
                      ),
-                     # Only show this panel if the plot type is a histogram
+                     # Only show this panel if the plot type is a histogram.
                      conditionalPanel(
                          condition = "input.plotType == 'histogram'",
                          selectInput(
@@ -64,7 +64,7 @@ shinyUI(navbarPage(
                                        value = FALSE)
                  
              ),
-             # Only show this panel if the plot type is a histogram
+             # Only show this panel if the plot type is a scatter plot.
              conditionalPanel(
                  condition = "input.plotType == 'scatterPlot'",
                  selectInput(
@@ -97,8 +97,16 @@ shinyUI(navbarPage(
              )
              ),
              mainPanel(
-                 plotOutput("plot")
-             )
+                 conditionalPanel(
+                     condition = "input.plotType == 'histogram'",
+                 plotOutput("histogram")
+                 ),
+                 conditionalPanel(
+                     condition = "input.plotType == 'scatterPlot'",
+                     plotlyOutput("scatter")
+                 )
+             ),
+             
              )
     )
     )
