@@ -44,7 +44,7 @@ shinyUI(navbarPage(
                          choiceValues = c("histogram", "scatterPlot"),
                          choiceNames = c("Histogram", "Scatter Plot"),
                          selected = "histogram",
-                         inline = TRUE,
+                         inline = TRUE
                      ),
                      # Only show this panel if the plot type is a histogram
                      conditionalPanel(
@@ -63,7 +63,39 @@ shinyUI(navbarPage(
                                        label = "Apply Natural Logarithm", 
                                        value = FALSE)
                  
-             )),
+             ),
+             # Only show this panel if the plot type is a histogram
+             conditionalPanel(
+                 condition = "input.plotType == 'scatterPlot'",
+                 selectInput(
+                     inputId = "varX",
+                     label = "X Variable",
+                     choices = colnames(countyData)[3:35]),
+                 
+                 checkboxInput(inputId = "varXLogScale", 
+                               label = "Apply Natural Logarithm to X", 
+                               value = FALSE),
+                 selectInput(
+                     inputId = "varY",
+                     label = "Y Variable",
+                     choices = colnames(countyData)[3:35],
+                     selected = "PercentTrump"),
+                 
+                 checkboxInput(inputId = "varYLogScale", 
+                               label = "Apply Natural Logarithm to Y", 
+                               value = FALSE),
+                 radioButtons(
+                     inputId = "addRegression",
+                     label = "Add Smoothed Regression Line",
+                     choiceValues = c(TRUE, FALSE),
+                     choiceNames = c("Yes", "No"),
+                     selected = FALSE,
+                     inline = TRUE
+                 )
+
+                 
+             )
+             ),
              mainPanel(
                  plotOutput("plot")
              )

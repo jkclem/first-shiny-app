@@ -59,7 +59,64 @@ shinyServer(function(input, output, session) {
             scale_y_continuous("Frequency") + 
             ggtitle(paste0("Histogram of ", histVar))
         }
+      } else {
+        varXLogScale <- input$varXLogScale 
+        varYLogScale <- input$varYLogScale
+        varX <- input$varX 
+        varY <- input$varY
+        addRegression <- input$addRegression
+        
+        if (varXLogScale & varYLogScale) {
+          scatterPlot <- countyData %>%
+            mutate(
+              tempVarX = pull(log(countyData[, varX])),
+              tempVarY = pull(log(countyData[, varY]))
+            ) %>%
+            ggplot(aes(tempVarX, tempVarY)) + 
+            geom_point(color="purple", alpha=0.33) + 
+            scale_x_continuous(paste0("log(", varX, ")")) +
+            scale_y_continuous(paste0("log(", varY, ")")) + 
+            ggtitle(paste0("Scatter Plot of log(", 
+                           varX, ") vs. log(", varY, ")"))
+        } else if (varXLogScale & !varYLogScale) {
+          scatterPlot <- countyData %>%
+            mutate(
+              "tempVarX" = pull(log(countyData[, varX]))
+            ) %>%
+            ggplot(aes_string(x="tempVarX", y=varY)) + 
+            geom_point(color="purple", alpha=0.33) + 
+            scale_x_continuous(paste0("log(", varX, ")")) +
+            scale_y_continuous(varY) + 
+            ggtitle(paste0("Scatter Plot of log(", 
+                           varX, ") vs. ", varY))
+        } else if (!varXLogScale & varYLogScale) {
+          scatterPlot <- countyData %>%
+            mutate(
+              "tempVarY" = pull(log(countyData[, varY]))
+            ) %>%
+            ggplot(aes_string(x=varX, y="tempVarY")) + 
+            geom_point(color="purple", alpha=0.33) + 
+            scale_x_continuous(varX) +
+            scale_y_continuous(paste0("log(", varY, ")")) + 
+            ggtitle(paste0("Scatter Plot of ", 
+                           varX, " vs. log(", varY, ")"))
+        } else {
+          scatterPlot <- countyData %>%
+            ggplot(aes_string(x=varX, y=varY)) + 
+            geom_point(color="purple", alpha=0.33) + 
+            scale_x_continuous(varX) +
+            scale_y_continuous(varY) + 
+            ggtitle(paste0("Scatter Plot of ", 
+                           varX, " vs. ", varY))
+        }
+        
+        if (addRegression) {
+          scatterPlot <- scatterPlot +
+            geom_smooth(color="grey20")
+        }
+        myPlot <- scatterPlot 
       }
+      
       
       myPlot
     })

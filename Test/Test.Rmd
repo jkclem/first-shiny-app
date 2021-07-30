@@ -34,10 +34,10 @@ countyData <- read_csv(paste0(location, fileName),
 input <- list()
 input$histLogScale <- TRUE
 input$histVar <- "TotalPop"
-input$scatterVarXLogScale <- FALSE
-input$scatterVarYLogScale <- FALSE
-input$scatterVarX <- "Black"
-input$scatterVarY <- "PercentClinton"
+input$varXLogScale <- FALSE
+input$varYLogScale <- TRUE
+input$varX <- "Black"
+input$varY <- "PercentClinton"
 input$addRegression <- TRUE
 ```
 
@@ -85,54 +85,54 @@ histPlot
 ## Scatter Plot
 
 ```{r}
-scatterVarXLogScale <- input$scatterVarXLogScale 
-scatterVarYLogScale <- input$scatterVarYLogScale
-scatterVarX <- input$scatterVarX 
-scatterVarY <- input$scatterVarY
+varXLogScale <- input$varXLogScale 
+varYLogScale <- input$varYLogScale
+varX <- input$varX 
+varY <- input$varY
 addRegression <- input$addRegression
 
-if (scatterVarXLogScale & scatterVarYLogScale) {
+if (varXLogScale & varYLogScale) {
   scatterPlot <- countyData %>%
     mutate(
-      tempVarX = pull(log(countyData[, scatterVarX])),
-      tempVarY = pull(log(countyData[, scatterVarY]))
+      tempVarX = pull(log(countyData[, varX])),
+      tempVarY = pull(log(countyData[, varY]))
     ) %>%
     ggplot(aes(tempVarX, tempVarY)) + 
     geom_point(color="purple", alpha=0.33) + 
-    scale_x_continuous(paste0("log(", scatterVarX, ")")) +
-    scale_y_continuous(paste0("log(", scatterVarY, ")")) + 
+    scale_x_continuous(paste0("log(", varX, ")")) +
+    scale_y_continuous(paste0("log(", varY, ")")) + 
     ggtitle(paste0("Scatter Plot of log(", 
-                   scatterVarX, ") vs. log(", scatterVarY, ")"))
-} else if (scatterVarXLogScale & !scatterVarYLogScale) {
+                   varX, ") vs. log(", varY, ")"))
+} else if (varXLogScale & !varYLogScale) {
   scatterPlot <- countyData %>%
     mutate(
-      tempVarX = pull(log(countyData[, scatterVarX]))
+      "tempVarX" = pull(log(countyData[, varX]))
     ) %>%
-    ggplot(aes(x=tempVarX)) + 
-    geom_point(aes_string(y=scatterVarY), color="purple", alpha=0.33) + 
-    scale_x_continuous(paste0("log(", scatterVarX, ")")) +
-    scale_y_continuous(scatterVarY) + 
+    ggplot(aes_string(x="tempVarX", y=varY)) + 
+    geom_point(color="purple", alpha=0.33) + 
+    scale_x_continuous(paste0("log(", varX, ")")) +
+    scale_y_continuous(varY) + 
     ggtitle(paste0("Scatter Plot of log(", 
-                   scatterVarX, ") vs. ", scatterVarY))
-} else if (!scatterVarXLogScale & scatterVarYLogScale) {
+                   varX, ") vs. ", varY))
+} else if (!varXLogScale & varYLogScale) {
   scatterPlot <- countyData %>%
     mutate(
-      tempVarY = pull(log(countyData[, scatterVarY]))
+      "tempVarY" = pull(log(countyData[, varY]))
     ) %>%
-    ggplot(aes(y=tempVarY)) + 
-    geom_point(aes_string(x=scatterVarX), color="purple", alpha=0.33) + 
-    scale_x_continuous(scatterVarX) +
-    scale_y_continuous(paste0("log(", scatterVarY, ")")) + 
+    ggplot(aes_string(x=varX, y="tempVarY")) + 
+    geom_point(color="purple", alpha=0.33) + 
+    scale_x_continuous(varX) +
+    scale_y_continuous(paste0("log(", varY, ")")) + 
     ggtitle(paste0("Scatter Plot of ", 
-                   scatterVarX, " vs. log(", scatterVarY, ")"))
+                   varX, " vs. log(", varY, ")"))
 } else {
   scatterPlot <- countyData %>%
-    ggplot(aes_string(x=scatterVarX, y=scatterVarY)) + 
+    ggplot(aes_string(x=varX, y=varY)) + 
     geom_point(color="purple", alpha=0.33) + 
-    scale_x_continuous(scatterVarX) +
-    scale_y_continuous(scatterVarY) + 
+    scale_x_continuous(varX) +
+    scale_y_continuous(varY) + 
     ggtitle(paste0("Scatter Plot of ", 
-                   scatterVarX, " vs. ", scatterVarY))
+                   varX, " vs. ", varY))
 }
 
 if (addRegression) {
@@ -142,6 +142,22 @@ if (addRegression) {
 suppressMessages(ggplotly(scatterPlot)) 
 ```
 
+```{r}
+scatterPlot <- countyData %>%
+    mutate(
+      "tempVarY" = pull(log(countyData[, varY]))
+    ) %>%
+    ggplot(aes_string(x=varX, y="tempVarY")) + 
+    geom_point(color="purple", alpha=0.33) + 
+    scale_x_continuous(varX) +
+    scale_y_continuous(paste0("log(", varY, ")")) + 
+    ggtitle(paste0("Scatter Plot of ", 
+                   varX, " vs. log(", varY, ")")) + 
+  geom_smooth()
+
+scatterPlot
+   
+```
 
 
 
