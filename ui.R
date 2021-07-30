@@ -18,25 +18,65 @@ fileName <- "2016 Electoral and Demographic Data - County Level.csv"
 countyData <- read_csv(paste0(location, fileName),
                        col_types=cols())
 
+# Save strings with the link to the data sources.
+acsDataLink <- "https://www.kaggle.com/muonneutrino/us-census-demographic-data"
+voteDataLink <- paste0("https://github.com/tonmcg/", "
+                       US_County_Level_Election_Results_08-20/blob/master/",
+                       "2016_US_County_Level_Presidential_Results.csv")
+
 # Define UI.
 shinyUI(navbarPage(
     
+    # Add a title.
     title = "2016 County-Level Demographics and Presidential Electoral Results",
-    
+    # Add a theme.
     theme = shinytheme("darkly"),
     
+    # Create tabs for the different sections.
     tabsetPanel(
+        
+        # Create a tab for the about section.
         tabPanel(title="About",
                  mainPanel(
-                     fluidRow()
+                     # Add a section telling the user what this app is for.
+                     h3("The Purpose of this App"),
+                     "This app is to explore the relationship between ",
+                     "demographic data and electoral outcomes in the ",
+                     "2016 presidential election at a county level.",
+                     
+                     # Add a section discussing the data.
+                     h3("The Data"),
+                     "The demographic data is from the 2015 American ",
+                     "Community Survey (ACS) 5-year estimates. I retrieved it ",
+                     "from  ",
+                     a(href = acsDataLink, "here"),
+                     ". I actually downloaded the census tract level data in ",
+                     "2019 and aggregated it up to the county level myself.",
+                     "The ACS includes demographic variables related to the ",
+                     "gender and ethnic composition, size, and economic ",
+                     "situation of an area.",
+                     # Add a line break.
+                     br(),
+                     br(),
+                     "The county level 2016 presidential vote shares were ",
+                     "taken from ",
+                     a(href=voteDataLink,
+                       "here"),
+                     ". Unfortunately, there isn't county-level vote share ",
+                     "data available for Alaska in this data set. This ", 
+                     "analysis is restricted to the continental 48 + Hawaii.",
+                     
+                     h3("The Tabs")
                      )
                 ),
-    tabPanel(title="Data",
-             mainPanel(
-                 dataTableOutput(outputId = "tab")
-                 )
-             ),
-    tabPanel(title = "Data Exploration",
+        tabPanel(title="Data",
+                 mainPanel(
+                     dataTableOutput(outputId = "tab")
+                     )
+                 ),
+        
+        
+        tabPanel(title = "Data Exploration",
                  sidebarPanel(
                      radioButtons(
                          inputId = "plotType",
@@ -45,70 +85,76 @@ shinyUI(navbarPage(
                          choiceNames = c("Histogram", "Scatter Plot"),
                          selected = "histogram",
                          inline = TRUE
-                     ),
+                         ),
                      # Only show this panel if the plot type is a histogram.
                      conditionalPanel(
                          condition = "input.plotType == 'histogram'",
                          selectInput(
                              inputId = "histVar",
                              label = "Variable",
-                             choices = colnames(countyData)[3:35]),
-                         numericInput(inputId = "bins",
-                                      label = "Number of Bins",
-                                      value = 30,
-                                      min = 5,
-                                      max = 100,
-                                      step = 5),
-                         checkboxInput(inputId = "histLogScale", 
-                                       label = "Apply Natural Logarithm", 
-                                       value = FALSE)
-                 
-             ),
-             # Only show this panel if the plot type is a scatter plot.
-             conditionalPanel(
-                 condition = "input.plotType == 'scatterPlot'",
-                 selectInput(
-                     inputId = "varX",
-                     label = "X Variable",
-                     choices = colnames(countyData)[3:35]),
-                 
-                 checkboxInput(inputId = "varXLogScale", 
-                               label = "Apply Natural Logarithm to X", 
-                               value = FALSE),
-                 selectInput(
-                     inputId = "varY",
-                     label = "Y Variable",
-                     choices = colnames(countyData)[3:35],
-                     selected = "PercentTrump"),
-                 
-                 checkboxInput(inputId = "varYLogScale", 
-                               label = "Apply Natural Logarithm to Y", 
-                               value = FALSE),
-                 radioButtons(
-                     inputId = "addRegression",
-                     label = "Add Smoothed Regression Line",
-                     choiceValues = c(TRUE, FALSE),
-                     choiceNames = c("Yes", "No"),
-                     selected = FALSE,
-                     inline = TRUE
+                             choices = colnames(countyData)[3:35]
+                             ),
+                         numericInput(
+                             inputId = "bins",
+                             label = "Number of Bins",
+                             value = 30,
+                             min = 5,
+                             max = 100,
+                             step = 5
+                             ),
+                         checkboxInput(
+                             inputId = "histLogScale", 
+                             label = "Apply Natural Logarithm",
+                             value = FALSE
+                             )
+                         ),
+                     # Only show this panel if the plot type is a scatter plot.
+                     conditionalPanel(
+                         condition = "input.plotType == 'scatterPlot'",
+                         selectInput(
+                             inputId = "varX",
+                             label = "X Variable",
+                             choices = colnames(countyData)[3:35]
+                             ),
+                         
+                         checkboxInput(
+                             inputId = "varXLogScale",
+                             label = "Apply Natural Logarithm to X",
+                             value = FALSE
+                             ),
+                         selectInput(
+                             inputId = "varY",
+                             label = "Y Variable",
+                             choices = colnames(countyData)[3:35],
+                             selected = "PercentTrump"
+                             ),
+                         checkboxInput(
+                             inputId = "varYLogScale",
+                             label = "Apply Natural Logarithm to Y",
+                             value = FALSE
+                             ),
+                         radioButtons(
+                             inputId = "addRegression",
+                             label = "Add Smoothed Regression Line",
+                             choiceValues = c(TRUE, FALSE),
+                             choiceNames = c("Yes", "No"),
+                             selected = FALSE,
+                             inline = TRUE
+                             )
+                         )
+                     ),
+                 mainPanel(
+                     conditionalPanel(
+                         condition = "input.plotType == 'histogram'",
+                         plotOutput("histogram")
+                         ),
+                     conditionalPanel(
+                         condition = "input.plotType == 'scatterPlot'",
+                         plotlyOutput("scatter")
+                         )
+                     ),
                  )
-
-                 
-             )
-             ),
-             mainPanel(
-                 conditionalPanel(
-                     condition = "input.plotType == 'histogram'",
-                 plotOutput("histogram")
-                 ),
-                 conditionalPanel(
-                     condition = "input.plotType == 'scatterPlot'",
-                     plotlyOutput("scatter")
-                 )
-             ),
-             
-             )
-    )
+        )
     )
 )
 

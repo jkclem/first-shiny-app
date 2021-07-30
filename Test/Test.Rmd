@@ -142,22 +142,7 @@ if (addRegression) {
 suppressMessages(ggplotly(scatterPlot)) 
 ```
 
-```{r}
-scatterPlot <- countyData %>%
-    mutate(
-      "tempVarY" = pull(log(countyData[, varY]))
-    ) %>%
-    ggplot(aes_string(x=varX, y="tempVarY")) + 
-    geom_point(color="purple", alpha=0.33) + 
-    scale_x_continuous(varX) +
-    scale_y_continuous(paste0("log(", varY, ")")) + 
-    ggtitle(paste0("Scatter Plot of ", 
-                   varX, " vs. log(", varY, ")")) + 
-  geom_smooth()
 
-scatterPlot
-   
-```
 
 
 
