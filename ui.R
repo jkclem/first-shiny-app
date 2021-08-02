@@ -155,12 +155,17 @@ shinyUI(navbarPage(
                  ),
             
             mainPanel(
+                
                 dataTableOutput(outputId = "tab")
+                
                 )
             ),
         
-        tabPanel(title = "Data Exploration",
-                 sidebarPanel(
+        tabPanel(
+            
+            title = "Data Exploration",
+            
+            sidebarPanel(
                      
                      # Set the width.
                      width = 4,
@@ -321,7 +326,29 @@ shinyUI(navbarPage(
                          dataTableOutput("countiesWonTable")
                          )
                      )
-                 )
+                 ),
+        # Create the Data page.
+        navbarMenu(
+            
+            # Add a title.
+            title="Modeling",
+            
+            tabPanel(
+                title = "Modeling Info",
+                sidebarPanel(),
+                mainPanel()
+                ),
+            tabPanel(
+                title = "Model Fitting",
+                sidebarPanel(),
+                mainPanel()
+                ),
+            tabPanel(
+                title = "Prediction",
+                sidebarPanel(),
+                mainPanel()
+                )
+            )
         )
     )
 )
