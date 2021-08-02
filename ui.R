@@ -339,8 +339,92 @@ shinyUI(navbarPage(
                 mainPanel()
                 ),
             tabPanel(
+                
+                # Add a title for the sub tab.
                 title = "Model Fitting",
-                sidebarPanel(),
+                
+                # Allow the user to set a random seed between -100 and 100.
+                sidebarPanel(
+                    numericInput(
+                        inputId = "randSeed",
+                        label = "Set a Random Seed",
+                        value = 1,
+                        min = -100,
+                        max = 100,
+                        step = 0.05
+                    ),
+                
+                    # Allow the user to select the proportion of data to use for
+                    # a testing set.
+                    numericInput(
+                        inputId = "propTesting",
+                        label = "Proportion of Data to use for Test Set",
+                        value = 0.2,
+                        min = 0.1,
+                        max = 0.5,
+                        step = 0.05
+                    ),
+                    
+                    # Create a section for the logistic regression parameters.
+                    br(),
+                    h3("Logistic Regression Parameters"),
+                    selectInput(
+                        inputId = "logRegVars",
+                        label = "Variables to Include",
+                        choices = colnames(countyData)[3:33],
+                        selected = colnames(countyData)[3:33],
+                        multiple = TRUE,
+                        selectize = FALSE,
+                        size = 5
+                    ),
+                    
+                    # Create a section for the random forest parameters.
+                    br(),
+                    h3("Random Forest Parameters"),
+                    # Let the user select which variables to use.
+                    selectInput(
+                        inputId = "randForVars",
+                        label = "Variables to Include",
+                        choices = colnames(countyData)[3:33],
+                        selected = colnames(countyData)[3:33],
+                        multiple = TRUE,
+                        selectize = FALSE,
+                        size = 5
+                    ),
+                    # Let the user select the number of variables to consider
+                    # at each split.
+                    selectInput(
+                        inputId = "randForMtry",
+                        label = "Number of Variables to Consider at Each Split",
+                        choices = 1:colnames(countyData)[3:33],
+                        selected = c(2, 6, 10),
+                        multiple = TRUE,
+                        selectize = FALSE,
+                        size = 5
+                    ),
+                    
+                    # Create a section for the SVM parameters.
+                    br(),
+                    h3("SVM Parameters"),
+                    selectInput(
+                        inputId = "svmVars",
+                        label = "Variables to Include",
+                        choices = colnames(countyData)[3:33],
+                        selected = colnames(countyData)[3:33],
+                        multiple = TRUE,
+                        selectize = FALSE,
+                        size = 5
+                    ),
+                    selectInput(
+                        inputId = "svmVars",
+                        label = "Variables to Include",
+                        choices = colnames(countyData)[3:33],
+                        selected = colnames(countyData)[3:33],
+                        multiple = TRUE,
+                        selectize = FALSE,
+                        size = 5
+                    )
+                ),
                 mainPanel()
                 ),
             tabPanel(
