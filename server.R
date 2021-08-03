@@ -48,14 +48,32 @@ shinyServer(function(input, output, session) {
       filter(State %in% selectedStates,
              Winner %in% selectedWinner) %>%
       select(selectedCols)
+    
     })
+  
+  # Make the possibly subsetted data downloadable.
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("data.csv")
+    },
+    content = function(file) {
+      write.csv(
+        countyData %>%
+          filter(State %in% input$selectedStates,
+                 Winner %in% input$selectedWinner) %>%
+          select(input$selectedCols), 
+        file, 
+        row.names = FALSE
+        )
+    }
+  )
   
   ###
   # Data Exploration Tab
   ###
   
   # Create the output plot for the Data Exploration tab.
-  output$histogram <- renderPlot({
+  output$histogram <- renderPlotly({
     
     # Create a histogram output.
     
@@ -102,7 +120,7 @@ shinyServer(function(input, output, session) {
     }
     
     # Display the plot.
-    myPlot
+    ggplotly(myPlot)
     
   })
   

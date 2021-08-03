@@ -151,7 +151,9 @@ shinyUI(navbarPage(
                          selected = colnames(countyData),
                          multiple = TRUE,
                          selectize = TRUE
-                     )
+                     ),
+                     
+                     sidebarPanel(downloadButton("downloadData", "Download"))
                  ),
             
             mainPanel(
@@ -309,7 +311,7 @@ shinyUI(navbarPage(
                  mainPanel(
                      conditionalPanel(
                          condition = "input.plotType == 'histogram'",
-                         plotOutput("histogram")
+                         plotlyOutput("histogram")
                          ),
                      conditionalPanel(
                          condition = "input.plotType == 'scatterPlot'",
