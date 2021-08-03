@@ -282,7 +282,7 @@ shinyServer(function(input, output, session) {
   output$logRegEx <- renderUI({
     withMathJax(
       helpText(
-        "$$\\ln(\\frac{p_i}{1-p_i}) = \\beta_0 + \\Sigma^k_{j=1}\\beta_jx_{ij}$$"
+      "$$\\ln(\\frac{p_i}{1-p_i}) = \\beta_0 + \\Sigma^k_{j=1}\\beta_jx_{ij}$$"
         )
       )
   })
@@ -469,6 +469,12 @@ shinyServer(function(input, output, session) {
         geom_col(fill="purple") + 
         ggtitle("Most Important Features by Decrease in Gini Impurity")
       })
+    
+    # Save the fit models.
+    saveRDS(logRegModel, "./Fitted Models/logRegModel.rds")
+    saveRDS(knnModel, "./Fitted Models/knnModel.rds")
+    saveRDS(rfModel, "./Fitted Models/rfModel.rds")
+    
   })
   
   ###
@@ -490,7 +496,8 @@ shinyServer(function(input, output, session) {
         numericInput(
           inputId = paste0(variable, "Value"),
           label = paste0("Input ", variable, " Value"),
-          value = median(pull(countyData[, variable]), na.rm=TRUE)
+          value = median(pull(countyData[, variable]), na.rm=TRUE),
+          step = 0.1
         )
       })
     ))
@@ -511,10 +518,103 @@ shinyServer(function(input, output, session) {
         numericInput(
           inputId = paste0(variable, "Value"),
           label = paste0("Input ", variable, " Value"),
-          value = median(pull(countyData[, variable]), na.rm=TRUE)
+          value = median(pull(countyData[, variable]), na.rm=TRUE),
+          step = 0.1
         )
       })
     ))
+  })
+  
+  output$randForPredInputs <- renderUI({
+    
+    # Create a UI that lets the user input values for the random forest model  
+    # and get a prediction.
+    
+    # Get the variables to use for each model.
+    randForVars <- input$randForVars
+    
+    # Loop through the variables and create numeric input boxes for them. Use
+    # the median of the variable for the default value.
+    tags$ul(tagList(
+      lapply(randForVars, function(variable) {
+        numericInput(
+          inputId = paste0(variable, "Value"),
+          label = paste0("Input ", variable, " Value"),
+          value = median(pull(countyData[, variable]), na.rm=TRUE),
+          step = 0.1
+        )
+      })
+    ))
+  })
+  
+  observeEvent(input$predStart, {
+    
+    # Return predictions when the user wants them.
+    
+    # Retrieve the model to use for prediction.
+    modelType <- input$modelType
+    
+    # Load the appropriate model based on user input.
+    if (modelType == "logReg"){
+      
+      # Get the names of the user inputs for the logistic regression model.
+      varsOfInterest <- unlist(lapply(input$knnVars, paste0, sep="Value"))
+      # Load in the logistic regression model.
+      myModel <- readRDS("./Fitted Models/logRegModel.rds")
+      
+    } else if (modelType == "knn"){
+      
+      # Get the names of the user inputs for the k-NN model.
+      varsOfInterest <- unlist(lapply(input$knnVars, paste0, sep="Value"))
+      # Load in the k-NN model.
+      myModel <- readRDS("./Fitted Models/knnModel.rds")
+      
+    } else {
+  
+      # Get the names of the user inputs for the random forest model.
+      varsOfInterest <- unlist(lapply(input$randForVars, paste0, sep="Value"))
+      # Load in the random forest model.
+      myModel <- readRDS("./Fitted Models/rfModel.rds")
+      
+    }
+    
+    # Loop through the user inputs adding them to a vector because you cannot
+    # access the variables by simply passing the vector of list elements to 
+    # input.
+    inputCopy <- c()
+    for (variable in varsOfInterest){
+      inputCopy <- c(inputCopy, input[[variable]])
+    }
+    
+    # Create a 1-row matrix of the user inputs.
+    inputCopy <- t(matrix(inputCopy))
+    # Strip "Value" from the variable names to match the column names in 
+    # countyData.
+    colnames(inputCopy) <- str_remove_all(varsOfInterest, pattern="Value")
+    
+    # Create a data.frame from the user inputs.
+    userInputs <- as.data.frame(inputCopy)
+    
+    # Get class and probability predictions for the user inputs.
+    classPred <- predict(myModel, userInputs, type="raw")
+    probPred <- predict(myModel, userInputs, type="prob")
+    # Combine them into a single matrix.
+    preds <- cbind(classPred, probPred)
+    # Add informative column names.
+    colnames(preds) <- c(
+      "Predicted Winner", 
+      "Predicted Prob. of Clinton Win",
+      "Predicted Prob. of Trump Win"
+      )
+    
+    # Convert the preds matrix to a data.frame.
+    preds <- as.data.frame(preds)
+    
+    # Return the predictions.
+    output$preds <- renderDataTable({
+      preds
+    })
+    
   })
   
   return(output)

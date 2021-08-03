@@ -38,7 +38,7 @@ shinyUI(navbarPage(
     # Add a title.
     title = "2016 County-Level Demographics and Presidential Electoral Results",
     # Add a theme.
-    theme = shinytheme("darkly"),
+    theme = shinytheme("flatly"),
     
     # Create tabs for the different sections.
     tabsetPanel(
@@ -152,7 +152,7 @@ shinyUI(navbarPage(
                          multiple = TRUE,
                          selectize = TRUE
                      ),
-                     
+                     # Create a download button to download the data set.
                      sidebarPanel(downloadButton("downloadData", "Download"))
                  ),
             
@@ -447,7 +447,16 @@ shinyUI(navbarPage(
                         inputId = "logRegVars",
                         label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
-                        selected = colnames(countyData)[3:33],
+                        selected = c(
+                            "TotalPop",
+                            "White",
+                            "Black",
+                            "Asian",
+                            "Hispanic",
+                            "Transit",
+                            "IncomeWeighted",
+                            "Poverty"
+                            ),
                         multiple = TRUE,
                         selectize = TRUE
                     ),
@@ -458,7 +467,16 @@ shinyUI(navbarPage(
                         inputId = "knnVars",
                         label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
-                        selected = colnames(countyData)[3:33],
+                        selected = c(
+                            "TotalPop",
+                            "White",
+                            "Black",
+                            "Asian",
+                            "Hispanic",
+                            "Transit",
+                            "IncomeWeighted",
+                            "Poverty"
+                        ),
                         multiple = TRUE,
                         selectize = TRUE
                     ),
@@ -492,7 +510,16 @@ shinyUI(navbarPage(
                         inputId = "randForVars",
                         label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
-                        selected = colnames(countyData)[3:33],
+                        selected = c(
+                            "TotalPop",
+                            "White",
+                            "Black",
+                            "Asian",
+                            "Hispanic",
+                            "Transit",
+                            "IncomeWeighted",
+                            "Poverty"
+                        ),
                         multiple = TRUE,
                         selectize = TRUE
                     ),
@@ -539,6 +566,11 @@ shinyUI(navbarPage(
                             ),
                         choiceValues = c("logReg", "knn", "randFor"),
                         selected = "logReg"
+                        ),
+                    # Add a button for fitting models.
+                    actionButton(
+                        inputId = "predStart",
+                        label = "Predict"
                     ),
                     conditionalPanel(
                         condition = "input.modelType == 'logReg'",
@@ -550,10 +582,12 @@ shinyUI(navbarPage(
                     ),
                     conditionalPanel(
                         condition = "input.modelType == 'randFor'",
-                        "rand"
+                        uiOutput("randForPredInputs")
                     )
                 ),
-                mainPanel()
+                mainPanel(
+                    dataTableOutput("preds")
+                    )
                 )
             )
         )
