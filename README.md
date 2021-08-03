@@ -2,7 +2,7 @@
 
 ## Overview
 
-This app explores demographic data from the 2015 American Community survey and the
+This app explores demographic data from the 2015 American Community Survey and
 2016 presidential election outcomes at county level.
 
 ## Required Packages
@@ -33,4 +33,8 @@ install.packages("imager")
 install.packages("caret")
 ```
 
-• The shiny::runGitHub() code that we can copy and paste into RStudio to run your app.
+## Use the code below to run the app
+
+```
+shiny::runGitHub("jkclem/first-shiny-app", ref="main")
+```
