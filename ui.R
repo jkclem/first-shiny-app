@@ -527,7 +527,32 @@ shinyUI(navbarPage(
                 ),
             tabPanel(
                 title = "Prediction",
-                sidebarPanel(),
+                sidebarPanel(
+                    radioButtons(
+                        inputId = "modelType",
+                        label = "Choose a Model",
+                        inline = TRUE,
+                        choiceNames = c(
+                            "Logistic Regression", 
+                            "k-NN", 
+                            "Random Forest"
+                            ),
+                        choiceValues = c("logReg", "knn", "randFor"),
+                        selected = "logReg"
+                    ),
+                    conditionalPanel(
+                        condition = "input.modelType == 'logReg'",
+                        uiOutput("logRegPredInputs")
+                    ),
+                    conditionalPanel(
+                        condition = "input.modelType == 'knn'",
+                        uiOutput("knnPredInputs")
+                    ),
+                    conditionalPanel(
+                        condition = "input.modelType == 'randFor'",
+                        "rand"
+                    )
+                ),
                 mainPanel()
                 )
             )

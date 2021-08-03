@@ -471,6 +471,52 @@ shinyServer(function(input, output, session) {
       })
   })
   
+  ###
+  # Modeling - Prediction
+  ###
+  
+  output$logRegPredInputs <- renderUI({
+    
+    # Create a UI that lets the user input values for the logistic regression 
+    # and get a prediction.
+    
+    # Get the variables to use for each model.
+    logRegVars <- input$logRegVars
+    
+    # Loop through the variables and create numeric input boxes for them. Use
+    # the median of the variable for the default value.
+    tags$ul(tagList(
+      lapply(logRegVars, function(variable) {
+        numericInput(
+          inputId = paste0(variable, "Value"),
+          label = paste0("Input ", variable, " Value"),
+          value = median(pull(countyData[, variable]), na.rm=TRUE)
+        )
+      })
+    ))
+  })
+  
+  output$knnPredInputs <- renderUI({
+    
+    # Create a UI that lets the user input values for the k-NN model and get a 
+    # prediction.
+    
+    # Get the variables to use for each model.
+    knnVars <- input$knnVars
+    
+    # Loop through the variables and create numeric input boxes for them. Use
+    # the median of the variable for the default value.
+    tags$ul(tagList(
+      lapply(knnVars, function(variable) {
+        numericInput(
+          inputId = paste0(variable, "Value"),
+          label = paste0("Input ", variable, " Value"),
+          value = median(pull(countyData[, variable]), na.rm=TRUE)
+        )
+      })
+    ))
+  })
+  
   return(output)
   
 })
