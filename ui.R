@@ -346,7 +346,7 @@ shinyUI(navbarPage(
                     "based solely on their demographic characteristics. ",
                     "We will use 3 types of models: logistic regression, k-NN ",
                     "and a random forest.",
-                    
+                    br(),
                     br(),
                     h4("Logistic Regression"),
                     "Logistic regression is a classification model that ",
@@ -355,16 +355,16 @@ shinyUI(navbarPage(
                     uiOutput("logRegEx"),
                     "Its linear form allows for interpretation, as the signs ",
                     "tell us if increasing values of a variable makes an ",
-                    "outcome more or less likely."
-                    ),
-                
+                    "outcome more or less likely.",
+                    br(),
                     br(),
                     h4("k-NN"),
                     "k-NN, or k-Nearest Neighbors is a simple algorithm. We ",
                     "simply find the", tags$b("k"), "closest points to a new ",
                     "data point and take a majority vote to determine the ",
                     "class (or average the response for regression). ",
-                    "Closeness is usually determined via Euclidean distance.",
+                    "Closeness is usually determined by Euclidean distance.",
+                    br(),
                     br(),
                     "Because k-NN relies on distance metrics, it is prone to",
                     "the curse of dimensionality; points get farther apart ",
@@ -372,8 +372,31 @@ shinyUI(navbarPage(
                     "Thus, you need to keep the numbers of variables low ",
                     "or use dimensionality reduction on the data set for best ",
                     "performance. It is also not interpretable, because there ",
-                    "are no parameters."
-                )),
+                    "are no parameters.",
+                    br(),
+                    br(),
+                    h4("Random Forests"),
+                    "Random forests create bootstrap samples of the training ",
+                    "data and grow classification or regression trees on each ",
+                    "sample. At each split, the trees are restricted to a ",
+                    "subset of the features. For classification, the trees ",
+                    "take a majority vote on the class of the new data. For ",
+                    "regression, their predictions are averaged.",
+                    br(),
+                    br(),
+                    "Only considering a subset of features at each split ",
+                    "prevents a handful of features from dominating the early ",
+                    "splits in each tree and makes each tree more independent ",
+                    "(hopefully). By aggregating the predictions of the ",
+                    "independent trees, we reduce the variance of the ",
+                    "predictions. Random forests are typically good out-of-the",
+                    "-box predictive models, but unfortunately lose the ",
+                    "interpretability that stand-alone trees have.",
+                    br(),
+                    br(),
+                    br()
+                    ))
+                ),
             
             tabPanel(
                 
