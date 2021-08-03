@@ -1,5 +1,8 @@
 ###
-#
+# author: John Clements
+# date: 07/28/2021
+# purpose: Create the front-end UI for the app exploring demographics and
+#          voting patterns at a county level.
 ###
 
 library(shiny)
