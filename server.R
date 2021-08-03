@@ -2,9 +2,10 @@
 # author: John Clements
 # date: 07/28/2021
 # purpose: Serve as the back-end for the app exploring demographics and
-#          voting patterns at a county level.
+#          voting patterns at a county level in the 2016 election.
 ###
 
+# Load in packages used in the analysis.
 library(shiny)
 library(shinyWidgets)
 library(DT)
@@ -14,29 +15,33 @@ library(imager)
 library(plotly)
 library(caret)
 
-# Set the path to the file.
-location <- "./Data/"
 # Set the file name.
-fileName <- "2016 Electoral and Demographic Data - County Level.csv"
+fileName <- "./Data/2016 Electoral and Demographic Data - County Level.csv"
 
 # Read in the data.
-countyData <- read_csv(paste0(location, fileName),
-                       col_types=cols())
+countyData <- read_csv(
+  fileName,
+  col_types=cols()
+  )
+
 # Convert Winner to a factor.
 countyData %>%
   mutate(
     Winner = as.factor(Winner)
   )
 
-# Define server logic required to draw a histogram
+# Set up the back-end.
 shinyServer(function(input, output, session) {
   
   ###
   # Data Tab
   ###
   
-  # Create a data table output.
   output$tab <- renderDataTable({
+    
+    ###
+    # Create a data table output that the user can filter.
+    ###
     
     # Extract the selected states, winner, and columns.
     selectedStates <- unlist(input$selectedStates)
@@ -51,8 +56,13 @@ shinyServer(function(input, output, session) {
     
     })
   
-  # Make the possibly subsetted data downloadable.
+  
   output$downloadData <- downloadHandler(
+    
+    ###
+    # Make the possibly subsetted data downloadable.
+    ###
+    
     filename = function() {
       paste("data.csv")
     },
@@ -68,14 +78,16 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  
   ###
   # Data Exploration Tab
   ###
   
-  # Create the output plot for the Data Exploration tab.
   output$histogram <- renderPlotly({
     
+    ###
     # Create a histogram output.
+    ###
     
     # Extract the input variables associated with the histogram.
     histVar <- input$histVar
@@ -124,10 +136,11 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # Create the output plot for the Data Exploration tab.
   output$scatter <- renderPlotly({
     
+    ###
     # Create a scatterplot output.
+    ###
     
     # Extract the input variables associated with the scatter plot.
     varXLogScale <- input$varXLogScale 
@@ -224,7 +237,9 @@ shinyServer(function(input, output, session) {
   
   output$numericSummaryTable <- renderDT({
     
+    ###
     # Output a numeric summary table of the variables of interest.
+    ###
     
     # Extract the selected states, winner, and columns.
     selectedStatesDE <- unlist(input$selectedStatesDE)
@@ -248,8 +263,10 @@ shinyServer(function(input, output, session) {
   
   output$countiesWonTable <- renderDT({
     
+    ###
     # Output a count of the the counties won along with the population and
-    # population density of the area won.
+    # average population of the counties won.
+    ###
     
     # Extract the selected states, and number of digits to round.
     selectedStatesDE <- unlist(input$selectedStatesDE)
@@ -268,18 +285,23 @@ shinyServer(function(input, output, session) {
         "Total Population" = sum(TotalPop)
       ) %>%
       mutate(
-        "Population Density" = round(`Total Population` / `Counties Won`,
+        "Average Population" = round(`Total Population` / `Counties Won`,
                                      popDensRounding)
       )
     
   })
   
+  
   ###
   # Modeling - Info
   ###
   
-  # Show the mathematical formulation of Logistic Regression.
   output$logRegEx <- renderUI({
+    
+    ###
+    # Show the mathematical formulation of Logistic Regression.
+    ###
+    
     withMathJax(
       helpText(
       "$$\\ln(\\frac{p_i}{1-p_i}) = \\beta_0 + \\Sigma^k_{j=1}\\beta_jx_{ij}$$"
@@ -287,13 +309,16 @@ shinyServer(function(input, output, session) {
       )
   })
   
+  
   ###
   # Modeling - Training
   ###
   
   output$minKInput <- renderUI({
     
+    ###
     # Create the input box for the min number of k in k-NN.
+    ###
     
     # Find the smallest subsection of the data.
     minProp <- min(input$propTesting, 1/input$numFolds)
@@ -310,7 +335,9 @@ shinyServer(function(input, output, session) {
   
   output$maxKInput <- renderUI({
     
+    ###
     # Create the input box for the max number of k in k-NN.
+    ###
     
     # Find the user's min k.
     minK <- input$minK
@@ -338,7 +365,16 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$trainStart, {
     
+    ###
     # Test the performance of the three models.
+    ###
+    
+    # Create a Progress object
+    progress <- Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error.
+    on.exit(progress$close())
+    # Set the message to the user while cross-validation is running.
+    progress$set(message = "Performing Cross-Validation", value = 0)
     
     # Get the variables to use for each model.
     logRegVars <- unlist(input$logRegVars)
@@ -372,6 +408,7 @@ shinyServer(function(input, output, session) {
     train <- countyData[-testInd, ]
     test <- countyData[testInd, ]
     
+    # Suppress any warning in the fitting process.
     suppressWarnings(library(caret))
     
     # Set the repeated CV params.
@@ -379,6 +416,9 @@ shinyServer(function(input, output, session) {
       method="cv",
       number=numFolds
       )
+    
+    # Increment the progress bar, and update the detail text.
+    progress$inc(0.2, detail = "Logistic Regression")
     
     # Evaluate the logistic regression through CV.
     logRegModel = train(
@@ -391,6 +431,9 @@ shinyServer(function(input, output, session) {
       trControl=TrControl
     )
     
+    # Increment the progress bar, and update the detail text.
+    progress$inc(0.4, detail = "k-NN")
+    
     # Let caret choose the best kNN through CV.
     knnModel = train(
       Winner ~ ., 
@@ -402,6 +445,9 @@ shinyServer(function(input, output, session) {
       trControl=TrControl
     )
     
+    # Increment the progress bar, and update the detail text.
+    progress$inc(0.6, detail = "Random Forest")
+    
     # Let caret choose the best random forest through CV.
     rfModel = train(
       Winner ~ ., 
@@ -412,6 +458,9 @@ shinyServer(function(input, output, session) {
       preProcess = c("center","scale"),
       trControl=TrControl
       )
+    
+    # Increment the progress bar, and update the detail text.
+    progress$inc(0.8, detail = "Evaluating Test Set Performance")
     
     # Get test set predictions.
     logRegPreds <- predict(logRegModel, test, type="raw")
@@ -470,12 +519,13 @@ shinyServer(function(input, output, session) {
         ggtitle("Most Important Features by Decrease in Gini Impurity")
       })
     
-    # Save the fit models.
+    # Save the fitted models in a folder.
     saveRDS(logRegModel, "./Fitted Models/logRegModel.rds")
     saveRDS(knnModel, "./Fitted Models/knnModel.rds")
     saveRDS(rfModel, "./Fitted Models/rfModel.rds")
     
   })
+  
   
   ###
   # Modeling - Prediction
@@ -483,8 +533,10 @@ shinyServer(function(input, output, session) {
   
   output$logRegPredInputs <- renderUI({
     
+    ###
     # Create a UI that lets the user input values for the logistic regression 
     # and get a prediction.
+    ###
     
     # Get the variables to use for each model.
     logRegVars <- input$logRegVars
@@ -505,8 +557,10 @@ shinyServer(function(input, output, session) {
   
   output$knnPredInputs <- renderUI({
     
+    ###
     # Create a UI that lets the user input values for the k-NN model and get a 
     # prediction.
+    ###
     
     # Get the variables to use for each model.
     knnVars <- input$knnVars
@@ -527,8 +581,10 @@ shinyServer(function(input, output, session) {
   
   output$randForPredInputs <- renderUI({
     
+    ###
     # Create a UI that lets the user input values for the random forest model  
     # and get a prediction.
+    ###
     
     # Get the variables to use for each model.
     randForVars <- input$randForVars
@@ -549,7 +605,9 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$predStart, {
     
+    ###
     # Return predictions when the user wants them.
+    ###
     
     # Retrieve the model to use for prediction.
     modelType <- input$modelType
@@ -598,7 +656,7 @@ shinyServer(function(input, output, session) {
     # Get class and probability predictions for the user inputs.
     classPred <- predict(myModel, userInputs, type="raw")
     probPred <- predict(myModel, userInputs, type="prob")
-    # Combine them into a single matrix.
+    # Combine them into a single matrix and round probabilities to 5 decimals.
     preds <- cbind(classPred, round(probPred, 5))
     # Add informative column names.
     colnames(preds) <- c(
@@ -617,6 +675,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  # Return the output.
   return(output)
   
 })

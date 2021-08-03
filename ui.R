@@ -2,9 +2,10 @@
 # author: John Clements
 # date: 07/28/2021
 # purpose: Create the front-end UI for the app exploring demographics and
-#          voting patterns at a county level.
+#          voting patterns at a county level in the 2016 election.
 ###
 
+# Load in packages used in the analysis.
 library(shiny)
 library(shinyWidgets)
 library(shinythemes)
@@ -13,18 +14,24 @@ library(readr)
 library(tidyverse)
 library(plotly)
 
-# Set the path to the file.
-location <- "./Data/"
 # Set the file name.
-fileName <- "2016 Electoral and Demographic Data - County Level.csv"
+fileName <- "./Data/2016 Electoral and Demographic Data - County Level.csv"
+
+# Read in the data.
+countyData <- read_csv(
+    fileName,
+    col_types=cols()
+)
+
+# Convert Winner to a factor.
+countyData %>%
+    mutate(
+        Winner = as.factor(Winner)
+    )
 
 # Get the location and name of the image for the About tab.
 imageName <- paste0("2016_Nationwide_US_presidential_county_map_shaded_by_",
                     "vote_share.png")
-
-# Read in the data.
-countyData <- read_csv(paste0(location, fileName),
-                       col_types=cols())
 
 # Save strings with the link to the data sources.
 acsDataLink <- "https://www.kaggle.com/muonneutrino/us-census-demographic-data"
