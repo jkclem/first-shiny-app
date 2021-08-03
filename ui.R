@@ -333,11 +333,47 @@ shinyUI(navbarPage(
             # Add a title.
             title="Modeling",
             
+            # Add text for the Modeling Info tab.
             tabPanel(
                 title = "Modeling Info",
-                sidebarPanel(),
-                mainPanel()
-                ),
+                mainPanel(fluidPage(
+                    
+                    br(),
+                    
+                    h4("Goals of the Modeling Secion"),
+                    "The goal of the modeling section is to classify counties ",
+                    "as voting for Trump or Clinton in the 2016 election ",
+                    "based solely on their demographic characteristics. ",
+                    "We will use 3 types of models: logistic regression, k-NN ",
+                    "and a random forest.",
+                    
+                    br(),
+                    h4("Logistic Regression"),
+                    "Logistic regression is a classification model that ",
+                    "models the log-odds as a linear function of the variables. ",
+                    "It assumes the form: ",
+                    uiOutput("logRegEx"),
+                    "Its linear form allows for interpretation, as the signs ",
+                    "tell us if increasing values of a variable makes an ",
+                    "outcome more or less likely."
+                    ),
+                
+                    br(),
+                    h4("k-NN"),
+                    "k-NN, or k-Nearest Neighbors is a simple algorithm. We ",
+                    "simply find the", tags$b("k"), "closest points to a new ",
+                    "data point and take a majority vote to determine the ",
+                    "class (or average the response for regression). ",
+                    "Closeness is usually determined via Euclidean distance.",
+                    br(),
+                    "Because k-NN relies on distance metrics, it is prone to",
+                    "the curse of dimensionality; points get farther apart ",
+                    "and closeness loses its meaning in high dimensions. ",
+                    "Thus, you need to keep the numbers of variables low ",
+                    "or use dimensionality reduction on the data set for best ",
+                    "performance. It is also not interpretable, because there ",
+                    "are no parameters."
+                )),
             
             tabPanel(
                 

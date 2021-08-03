@@ -275,6 +275,19 @@ shinyServer(function(input, output, session) {
   })
   
   ###
+  # Modeling - Info
+  ###
+  
+  # Show the mathematical formulation of Logistic Regression.
+  output$logRegEx <- renderUI({
+    withMathJax(
+      helpText(
+        "$$\\ln(\\frac{p_i}{1-p_i}) = \\beta_0 + \\Sigma^k_{j=1}\\beta_jx_{ij}$$"
+        )
+      )
+  })
+  
+  ###
   # Modeling - Training
   ###
   
