@@ -440,9 +440,22 @@ shinyServer(function(input, output, session) {
         paste0, sep="%"
       )
     
-    output$accTableOutput <- renderDataTable(
+    # Create the output for the accuracy table.
+    output$accTableOutput <- renderDataTable({
       datatable(accTable)
-      )
+      })
+    
+    # Create an output for the logistic regression model rounding to 4 decimals.
+    output$logRegSummary <- renderDataTable({
+      round(as.data.frame(summary(logRegModel)$coef), 4)
+      })
+    
+    # Create an output for the feature importance plot for random forest model.
+    output$rfVarImpPlot <- renderPlot({
+      ggplot(varImp(rfModel, type=2)) + 
+        geom_col(fill="purple") + 
+        ggtitle("Most Important Features by Decrease in Gini Impurity")
+      })
   })
   
   return(output)

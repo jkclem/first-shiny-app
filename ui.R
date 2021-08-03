@@ -447,14 +447,23 @@ shinyUI(navbarPage(
                         selected = c(2, 6, 10),
                         options = list(maxItems = 5)
                         ),
+                    # Add a button for fitting models.
                     actionButton(
                         inputId = "trainStart",
                         label = "Fit Models"
                         )
                     ),
                 mainPanel(
+                    # Show the test-set accuracies.
                     h3("Test Set Accuracies to 3 decimal places"),
-                    dataTableOutput("accTableOutput")
+                    dataTableOutput("accTableOutput"),
+                    br(),
+                    # Show the coefficients of the Logistic Regression Model.
+                    h3("Summary of Logistic Regression Model"),
+                    dataTableOutput("logRegSummary"),
+                    br(),
+                    h3("Random Forest Feature Importances"),
+                    plotOutput("rfVarImpPlot")
                     )
                 ),
             tabPanel(
