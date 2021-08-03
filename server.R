@@ -325,7 +325,7 @@ shinyServer(function(input, output, session) {
       label = "Min.", 
       min = 0, 
       max = 1000, 
-      value = 0.1
+      value = 0.01
       )
   })
   
@@ -418,7 +418,6 @@ shinyServer(function(input, output, session) {
       method = "glm",
       family = "binomial",
       metric="Accuracy",
-      preProcess = c("center","scale"),
       trControl=TrControl
     )
     
@@ -432,7 +431,6 @@ shinyServer(function(input, output, session) {
       method="rpart", 
       metric="Accuracy",
       tuneGrid=expand.grid(cp = Cps),
-      preProcess = c("center","scale"),
       trControl=TrControl
     )
     
@@ -446,7 +444,6 @@ shinyServer(function(input, output, session) {
       method="rf", 
       metric="Accuracy",
       tuneGrid=expand.grid(mtry = randForMtry),
-      preProcess = c("center","scale"),
       trControl=TrControl
       )
     
@@ -502,6 +499,11 @@ shinyServer(function(input, output, session) {
     output$logRegSummary <- renderDataTable({
       round(as.data.frame(summary(logRegModel)$coef), 4)
       })
+    
+    # Create a nice tree diagram.
+    output$treeSummary <- renderPlot({
+      fancyRpartPlot(treeModel$finalModel)
+    })
     
     # Create an output for the feature importance plot for random forest model.
     output$rfVarImpPlot <- renderPlot({

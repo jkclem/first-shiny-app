@@ -568,6 +568,10 @@ shinyUI(navbarPage(
                     h3("Summary of Logistic Regression Model"),
                     dataTableOutput("logRegSummary"),
                     br(),
+                    # Show the final tree diagram.
+                    h3("Tree Diagram"),
+                    plotOutput("treeSummary"),
+                    br(),
                     h3("Random Forest Feature Importances"),
                     plotOutput("rfVarImpPlot")
                     )
