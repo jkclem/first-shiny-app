@@ -28,8 +28,8 @@ countyData <- read_csv(paste0(location, fileName),
 
 # Save strings with the link to the data sources.
 acsDataLink <- "https://www.kaggle.com/muonneutrino/us-census-demographic-data"
-voteDataLink <- paste0("https://github.com/tonmcg/", "
-                       US_County_Level_Election_Results_08-20/blob/master/",
+voteDataLink <- paste0("https://github.com/tonmcg/",
+                       "US_County_Level_Election_Results_08-20/blob/master/",
                        "2016_US_County_Level_Presidential_Results.csv")
 
 # Define UI.
@@ -43,12 +43,11 @@ shinyUI(navbarPage(
     # Create tabs for the different sections.
     tabsetPanel(
         
-        # Create a tab for the about section.
+        # Create a tab for the About section.
         tabPanel(
-            
             # Add a title.
             title="About",
-            
+            # Create a main panel for the About tab.
             mainPanel(
                 # Load in an image of US counties color coded by how they
                 # voted in 2016.
@@ -57,10 +56,8 @@ shinyUI(navbarPage(
                     height = '406px', 
                     width = '640px'
                     ),
-                
                 # Add a section telling the user what this app is for.
                 h3("The Purpose of this App"),
-                
                 "This app explores the relationship between ",
                 "demographic data and electoral outcomes in the ",
                 "2016 presidential election at a county level.",
@@ -68,7 +65,6 @@ shinyUI(navbarPage(
                 
                 # Add a section discussing the data.
                 h3("The Data"),
-                
                 "The demographic data is from the 2015 American ",
                 "Community Survey (ACS) 5-year estimates. I retrieved it ",
                 "from  ",
@@ -78,11 +74,9 @@ shinyUI(navbarPage(
                 "The ACS includes demographic variables related to the ",
                 "gender and ethnic composition, size, and economic ",
                 "situation of an area.",
-                
                 # Add a line break.
                 br(),
                 br(),
-                
                 "The county level 2016 presidential vote shares were ",
                 "taken from ",
                 a(href=voteDataLink,
@@ -91,10 +85,8 @@ shinyUI(navbarPage(
                 "data available for Alaska in this data set. This ", 
                 "analysis is restricted to the continental 48 + Hawaii.",
                 
-                
                 # Add a section discussing the tabs.
                 h3("The Tabs"),
-                
                 tags$ul(
                     tags$li(
                         "Data: Shows the raw data"
@@ -104,11 +96,12 @@ shinyUI(navbarPage(
                         "data"
                         ), 
                     tags$li(
-                        "Modeling: Evaluates various models on ", 
-                        "predicting electoral outcomes"
+                        "Modeling: Gives information on 3 different models, ", 
+                        "fits 3 different models based on user inputs, and ",
+                        "let's the user predict the winner in a county ",
+                        "based on their inputs"
                         )
                     ),
-                
                 # Add line breaks to extend the page.
                 br(),
                 br(),
@@ -118,13 +111,10 @@ shinyUI(navbarPage(
         
         # Create the Data page.
         tabPanel(
-            
             # Add a title.
             title="Data",
-                 
                  # Create a side panel.
                  sidebarPanel(
-                     
                      # Create a filter for the states of interest.
                      selectInput(
                          inputId = "selectedStates",
@@ -155,26 +145,24 @@ shinyUI(navbarPage(
                      # Create a download button to download the data set.
                      sidebarPanel(downloadButton("downloadData", "Download"))
                  ),
-            
+            # Display the filtered data on the main panel.
             mainPanel(
-                
                 dataTableOutput(outputId = "tab")
-                
                 )
             ),
         
+        # Create a tab for the data exploration.
         tabPanel(
-            
+            # Add a title.
             title = "Data Exploration",
-            
+            # Create a sidbar for user inputs.
             sidebarPanel(
-                     
                      # Set the width.
                      width = 4,
                      
-                     # Add a header for this sidebar area.
+                     # Add a header for this sidebar area indicating these
+                     # parameters affect all of the others on this page..
                      h3("Universal Parameters"),
-                     
                      # Create a filter for the states of interest.
                      selectInput(
                          inputId = "selectedStatesDE",
@@ -194,9 +182,8 @@ shinyUI(navbarPage(
                          selectize = TRUE
                      ),
                      
-                     # Add a header for this sidebar portion.
+                     # Add a header for this sidebar portion for visualization.
                      h3("Visualization Parameters"),
-                     
                      # Create buttons to choose the plot type.
                      radioButtons(
                          inputId = "plotType",
@@ -210,14 +197,13 @@ shinyUI(navbarPage(
                      # Only show this panel if the plot type is a histogram.
                      conditionalPanel(
                          condition = "input.plotType == 'histogram'",
-                         
-                         # Accept user inputs to modify the histogram.
-                         
+                         # Change the variable of interest.
                          selectInput(
                              inputId = "histVar",
                              label = "Variable",
                              choices = colnames(countyData)[3:35]
                              ),
+                         # Change the number of bins.
                          numericInput(
                              inputId = "bins",
                              label = "Number of Bins",
@@ -226,6 +212,7 @@ shinyUI(navbarPage(
                              max = 100,
                              step = 5
                              ),
+                         # Take the log of the variable if the user wants.
                          checkboxInput(
                              inputId = "histLogScale", 
                              label = "Apply Natural Logarithm",
@@ -236,30 +223,33 @@ shinyUI(navbarPage(
                      # Only show this panel if the plot type is a scatter plot.
                      conditionalPanel(
                          condition = "input.plotType == 'scatterPlot'",
-                         
-                         # Accept user inputs to modify the scatter plot.
-                         
+                         # Select the X variable.
                          selectInput(
                              inputId = "varX",
                              label = "X Variable",
                              choices = colnames(countyData)[3:35]
                              ),
+                         # Take the log of the variable if the user wants.
                          checkboxInput(
                              inputId = "varXLogScale",
                              label = "Apply Natural Logarithm to X",
                              value = FALSE
                              ),
+                         # Select the Y variable.
                          selectInput(
                              inputId = "varY",
                              label = "Y Variable",
                              choices = colnames(countyData)[3:35],
                              selected = "PercentTrump"
                              ),
+                         # Take the log of the variable if the user wants.
                          checkboxInput(
                              inputId = "varYLogScale",
                              label = "Apply Natural Logarithm to Y",
                              value = FALSE
                              ),
+                         # Let the user add a smoothed regression line if they
+                         # want.
                          radioButtons(
                              inputId = "addRegression",
                              label = "Add Smoothed Regression Line",
@@ -270,22 +260,21 @@ shinyUI(navbarPage(
                              )
                          ),
                      
-                     # Add a header for this sidebar portion.
+                     # Add a header for this sidebar portion for the summaries.
                      h3("Summary Table Parameters"),
-                     
-                     # Choose whether to report numeric summaries of discrete.
+                     # Choose whether what summary to report.
                      radioButtons(
                          inputId = "summaryType",
                          label = "Summary Type",
                          choiceValues = c("numeric", "countiesWon"),
                          choiceNames = c("Numeric", "Counties Won"),
-                         selected = "",
+                         selected = "numeric",
                          inline = TRUE
                      ),
-                     
                      # Only show this panel if the summary type is numeric.
                      conditionalPanel(
                          condition = "input.summaryType == 'numeric'",
+                         # Let the user choose what to summarize.
                          selectInput(
                              inputId = "numericVars",
                              label = "Variable(s) to Summarize",
@@ -298,6 +287,7 @@ shinyUI(navbarPage(
                      # Only show this panel if the summary type is countiesWon.
                      conditionalPanel(
                          condition = "input.summaryType == 'countiesWon'",
+                         # Let the user choose how many digits to round to.
                          numericInput(
                              inputId = "popDensRounding",
                              label = "Number of Digits for Pop. Density",
@@ -308,38 +298,47 @@ shinyUI(navbarPage(
                          )
                      )
                      ),
-                 mainPanel(
-                     conditionalPanel(
-                         condition = "input.plotType == 'histogram'",
-                         plotlyOutput("histogram")
-                         ),
-                     conditionalPanel(
-                         condition = "input.plotType == 'scatterPlot'",
-                         plotlyOutput("scatter")
-                         ),
-                     conditionalPanel(
-                         condition = "input.summaryType == 'numeric'",
-                         dataTableOutput("numericSummaryTable")
-                         ),
-                     conditionalPanel(
-                         condition = "input.summaryType == 'countiesWon'",
-                         dataTableOutput("countiesWonTable")
-                         )
-                     )
-                 ),
-        # Create the Data page.
+            # Create the main panel for the data exploration.
+            mainPanel(
+                # Use the top portion for visualization.
+                h3("Visualization"),
+                # Use user input to determine which plot to show.
+                conditionalPanel(
+                    condition = "input.plotType == 'histogram'",
+                    plotlyOutput("histogram")
+                    ),                     
+                conditionalPanel(
+                    condition = "input.plotType == 'scatterPlot'",
+                    plotlyOutput("scatter")
+                    ),
+                
+                # Use the bottom portion for the summary.
+                h3("Summarization"),
+                # Use user input to determine which summary to show.
+                conditionalPanel(
+                    condition = "input.summaryType == 'numeric'",
+                    dataTableOutput("numericSummaryTable")
+                    ),
+                conditionalPanel(
+                    condition = "input.summaryType == 'countiesWon'",
+                    dataTableOutput("countiesWonTable")
+                    )
+                )
+            ),
+        
+        # Create the Modeling tab with 3 sub-tabs.
         navbarMenu(
             
             # Add a title.
             title="Modeling",
             
-            # Add text for the Modeling Info tab.
+            # Add the Modeling Info tab.
             tabPanel(
+                # Give it a title,
                 title = "Modeling Info",
                 mainPanel(fluidPage(
-                    
+                    # Give an overview of the modeling excercise.
                     br(),
-                    
                     h4("Goals of the Modeling Secion"),
                     "The goal of the modeling section is to classify counties ",
                     "as voting for Trump or Clinton in the 2016 election ",
@@ -348,16 +347,28 @@ shinyUI(navbarPage(
                     "and a random forest.",
                     br(),
                     br(),
+                    "It is important to remember that political leanings ",
+                    "shift and candidates matter, so these models could ",
+                    "predict presidential races poorly the farther away from ",
+                    "the 2016 election we get in time. I wouldn't use ",
+                    "anything here to put heavy money into prediction markets ",
+                    "in 2024.",
+                    br(),
+                    br(),
+                    
+                    # Give an overview of logistic regression.
                     h4("Logistic Regression"),
                     "Logistic regression is a classification model that ",
-                    "models the log-odds as a linear function of the variables. ",
-                    "It assumes the form: ",
+                    "models the log-odds of an event occurring as a linear ",
+                    "function of the variables. It assumes the form: ",
                     uiOutput("logRegEx"),
                     "Its linear form allows for interpretation, as the signs ",
                     "tell us if increasing values of a variable makes an ",
                     "outcome more or less likely.",
                     br(),
                     br(),
+                    
+                    # Give an overview of k-NN.
                     h4("k-NN"),
                     "k-NN, or k-Nearest Neighbors is a simple algorithm. We ",
                     "simply find the", tags$b("k"), "closest points to a new ",
@@ -375,6 +386,8 @@ shinyUI(navbarPage(
                     "are no parameters.",
                     br(),
                     br(),
+                    
+                    # Give an overview of random forests.
                     h4("Random Forests"),
                     "Random forests create bootstrap samples of the training ",
                     "data and grow classification or regression trees on each ",
@@ -397,12 +410,10 @@ shinyUI(navbarPage(
                     br()
                     ))
                 ),
-            
+            # Add a tab for fitting the models.
             tabPanel(
-                
                 # Add a title for the sub tab.
                 title = "Model Fitting",
-                
                 # Allow the user to set a random seed between -1000 and 1000.
                 sidebarPanel(
                     h3("Train-Test Split"),
@@ -414,7 +425,6 @@ shinyUI(navbarPage(
                         max = 1000,
                         step = 1
                     ),
-                
                     # Allow the user to select the proportion of data to use for
                     # a testing set.
                     numericInput(
@@ -426,7 +436,7 @@ shinyUI(navbarPage(
                         step = 0.05
                     ),
                     
-                    
+                    # Create a section for the cross-validation parameters.
                     h3("Cross-Validation"),
                     # Set the number of folds.
                     div(
@@ -443,6 +453,7 @@ shinyUI(navbarPage(
                     
                     # Create a section for the logistic regression parameters.
                     h3("Logistic Regression Parameters"),
+                    # Let the user set which variables to use.
                     selectInput(
                         inputId = "logRegVars",
                         label = "Variables to Include:",
@@ -461,8 +472,9 @@ shinyUI(navbarPage(
                         selectize = TRUE
                     ),
                     
-                    # Create a section for the SVM parameters.
+                    # Create a section for the k-NN parameters.
                     h3("k-NN Parameters"),
+                    # Let the user set which variables to use.
                     selectInput(
                         inputId = "knnVars",
                         label = "Variables to Include:",
@@ -480,8 +492,7 @@ shinyUI(navbarPage(
                         multiple = TRUE,
                         selectize = TRUE
                     ),
-                    
-                    # Add side-by-side inputs to take in the k parameter.
+                    # Add side-by-side inputs to take in the k parameters.
                     h4(tags$b("k:")),
                     div(
                         uiOutput("minKInput"),  
@@ -539,6 +550,8 @@ shinyUI(navbarPage(
                         label = "Fit Models"
                         )
                     ),
+                # Create the main panel to hold model performances and 
+                # summaries.
                 mainPanel(
                     # Show the test-set accuracies.
                     h3("Test Set Accuracies to 3 decimal places"),
@@ -552,9 +565,14 @@ shinyUI(navbarPage(
                     plotOutput("rfVarImpPlot")
                     )
                 ),
+            
+            # Create the prediction tab.
             tabPanel(
+                # Add a title.
                 title = "Prediction",
+                # Create a sidebar for the user to play with inputs.
                 sidebarPanel(
+                    # Add buttons to select which model to use.
                     radioButtons(
                         inputId = "modelType",
                         label = "Choose a Model",
@@ -572,6 +590,8 @@ shinyUI(navbarPage(
                         inputId = "predStart",
                         label = "Predict"
                     ),
+                    # Depending on which model to use for prediction, change the
+                    # variables shown to match the fitted models.
                     conditionalPanel(
                         condition = "input.modelType == 'logReg'",
                         uiOutput("logRegPredInputs")
@@ -585,7 +605,9 @@ shinyUI(navbarPage(
                         uiOutput("randForPredInputs")
                     )
                 ),
+                # Create the main panel to show predictions.
                 mainPanel(
+                    h3("Predicted Winner of a County with Your Inputs"),
                     dataTableOutput("preds")
                     )
                 )

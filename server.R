@@ -558,7 +558,7 @@ shinyServer(function(input, output, session) {
     if (modelType == "logReg"){
       
       # Get the names of the user inputs for the logistic regression model.
-      varsOfInterest <- unlist(lapply(input$knnVars, paste0, sep="Value"))
+      varsOfInterest <- unlist(lapply(input$logRegVars, paste0, sep="Value"))
       # Load in the logistic regression model.
       myModel <- readRDS("./Fitted Models/logRegModel.rds")
       
@@ -599,7 +599,7 @@ shinyServer(function(input, output, session) {
     classPred <- predict(myModel, userInputs, type="raw")
     probPred <- predict(myModel, userInputs, type="prob")
     # Combine them into a single matrix.
-    preds <- cbind(classPred, probPred)
+    preds <- cbind(classPred, round(probPred, 5))
     # Add informative column names.
     colnames(preds) <- c(
       "Predicted Winner", 
