@@ -18,6 +18,7 @@ I used the following packages for this app:
 - `plotly`: additional visualization functionality
 - `imager`: working with images
 - `caret`: machine learning
+- `rattle`: visualizing the tree model
 
 To install them all, run this code chunk:
 
@@ -31,6 +32,7 @@ install.packages("tidyverse")
 install.packages("plotly")
 install.packages("imager")
 install.packages("caret")
+install.packages("rattle")
 ```
 
 ## Use the code below to run the app

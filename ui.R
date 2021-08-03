@@ -13,6 +13,7 @@ library(DT)
 library(readr)
 library(tidyverse)
 library(plotly)
+library(rattle)
 
 # Set the file name.
 fileName <- "./Data/2016 Electoral and Demographic Data - County Level.csv"

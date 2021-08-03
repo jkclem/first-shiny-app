@@ -14,6 +14,7 @@ library(tidyverse)
 library(imager)
 library(plotly)
 library(caret)
+library(rattle)
 
 # Set the file name.
 fileName <- "./Data/2016 Electoral and Demographic Data - County Level.csv"
