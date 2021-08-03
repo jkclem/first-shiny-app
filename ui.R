@@ -363,7 +363,7 @@ shinyUI(navbarPage(
                     ),
                     
                     
-                    h3("Repeated Cross-Validation"),
+                    h3("Cross-Validation"),
                     # Set the number of folds.
                     div(
                         numericInput(
@@ -374,18 +374,6 @@ shinyUI(navbarPage(
                             max = 5,
                             step = 1
                             ),
-                        style="display:inline-block"
-                    ),
-                    # Set the number of repeats.
-                    div(
-                        numericInput(
-                            inputId = "numRepeats",
-                            label = "Number of Repeats",
-                            value = 3,
-                            min = 3,
-                            max = 5,
-                            step = 1
-                        ),
                         style="display:inline-block"
                     ),
                     
@@ -460,7 +448,8 @@ shinyUI(navbarPage(
                         )
                     ),
                 mainPanel(
-                    dataTableOutput("out1")
+                    h3("Test Set Accuracies to 3 decimal places"),
+                    dataTableOutput("accTableOutput")
                     )
                 ),
             tabPanel(

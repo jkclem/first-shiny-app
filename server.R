@@ -9,6 +9,7 @@ library(readr)
 library(tidyverse)
 library(imager)
 library(plotly)
+library(caret)
 
 # Set the path to the file.
 location <- "./Data/"
@@ -310,20 +311,19 @@ shinyServer(function(input, output, session) {
     knnVars <- unlist(input$knnVars)
     randForVars <- unlist(input$randForVars)
     
-    # Get the random seed, proportion of testing, and repeated k-folds params.
+    # Get the random seed, proportion of testing, and k-folds params.
     randSeed <- input$randSeed
     propTesting <- input$propTesting
     numFolds <- input$numFolds
-    numRepeats <- input$numRepeats
     
     # Get the number of Ks to try.
     minK <- input$minK
     maxK <- input$maxK
     numKs <- input$numKs
-    ks <- seq(minK, maxK, length.out=numKs)
+    ks <- round(seq(minK, maxK, length.out=numKs))
     
     # Get the random forest mtrys.
-    randForMtry <- input$randForMtry
+    randForMtry <- as.numeric(input$randForMtry)
     
     # Set the random seed.
     set.seed(randSeed)
@@ -339,44 +339,88 @@ shinyServer(function(input, output, session) {
     test <- countyData[testInd, ]
     
     suppressWarnings(library(caret))
-    set.seed(21)
     
     # Set the repeated CV params.
     TrControl <- trainControl(
-      method="repeatedcv",
-      number=numFolds,
-      repeats=numRepeats
+      method="cv",
+      number=numFolds
       )
     
-    # Let caret choose the best kNN through repeated CV.
-    rfModel = train(
-      paste0("Winner ~ ", .), 
-      data=train[, c(c("Winner"), knnVars)],
-      method="rf", 
+    # Evaluate the logistic regression through CV.
+    logRegModel = train(
+      Winner ~ ., 
+      data=train[, c(c("Winner"), logRegVars)],
+      method = "glm",
+      family = "binomial",
       metric="Accuracy",
-      tuneGrid=expand.grid(mtry = randForMtry),
+      preProcess = c("center","scale"),
       trControl=TrControl
     )
     
-    # Let caret choose the best random forest through repeated CV.
+    # Let caret choose the best kNN through CV.
+    knnModel = train(
+      Winner ~ ., 
+      data=train[, c(c("Winner"), knnVars)],
+      method="knn", 
+      metric="Accuracy",
+      tuneGrid=expand.grid(k = ks),
+      preProcess = c("center","scale"),
+      trControl=TrControl
+    )
+    
+    # Let caret choose the best random forest through CV.
     rfModel = train(
-      paste0("Winner ~ ", .), 
+      Winner ~ ., 
       data=train[, c(c("Winner"), randForVars)],
       method="rf", 
       metric="Accuracy",
       tuneGrid=expand.grid(mtry = randForMtry),
+      preProcess = c("center","scale"),
       trControl=TrControl
       )
     
+    # Get test set predictions.
+    logRegPreds <- predict(logRegModel, test, type="raw")
+    knnPreds <- predict(knnModel, test, type="raw")
+    randForPreds <- predict(rfModel, test, type="raw")
     
-    # Summarize the Accuracy and Cohen's Kappa for each model 
-    # in the 5-fold CV.
-    resamp = resamples(list(LogisticRegression = logRegModel, 
-                            kNN = kNNModel,
-                            RF = rfModel))
+    # Create the findMode function.
+    findMode <- function(x) {
+      # From https://www.tutorialspoint.com/r/r_mean_median_mode.htm
+      uniqueX <- unique(x)
+      uniqueX[which.max(tabulate(match(x, uniqueX)))]
+    }
     
-    output$out1 <- renderDataTable(
-      datatable(resamp)
+    # Find the no-info rate.
+    noInfoRate <- mean(findMode(test$Winner) == test$Winner)
+    # Find the test set performances.
+    accVec <- c(
+      noInfoRate,
+      mean(logRegPreds == test$Winner, na.rm=TRUE), 
+      mean(knnPreds == test$Winner, na.rm=TRUE), 
+      mean(randForPreds == test$Winner, na.rm=TRUE)
+      )
+    
+    # Convert to a matrix and percentages.
+    accMatrix <- t(as.matrix(accVec)) * 100
+    # Add informative column names.
+    colnames(accMatrix) <- c(
+      "No Information Rate",
+      "Logistic Regression",
+      paste0("k-NN (k = ", knnModel$bestTune$k, ")"),
+      paste0("Random Forest (mtry = ", rfModel$bestTune$mtry, ")")
+      )
+    # Convert the matrix to a dataframe.
+    accTable <- as.data.frame(accMatrix) %>%
+      mutate_all(
+        round, digits = 3
+      ) %>%
+      mutate_all(
+        paste0, sep="%"
+      )
+    
+    output$accTableOutput <- renderDataTable(
+      datatable(accTable)
       )
   })
   
