@@ -350,8 +350,8 @@ shinyUI(navbarPage(
                     "The goal of the modeling section is to classify counties ",
                     "as voting for Trump or Clinton in the 2016 election ",
                     "based solely on their demographic characteristics. ",
-                    "We will use 3 types of models: logistic regression, k-NN ",
-                    "and a random forest.",
+                    "We will use 3 types of models: logistic regression, ",
+                    "classification trees, and random forests.",
                     br(),
                     br(),
                     "It is important to remember that political leanings ",
@@ -375,22 +375,22 @@ shinyUI(navbarPage(
                     br(),
                     br(),
                     
-                    # Give an overview of k-NN.
-                    h4("k-NN"),
-                    "k-NN, or k-Nearest Neighbors is a simple algorithm. We ",
-                    "simply find the", tags$b("k"), "closest points to a new ",
-                    "data point and take a majority vote to determine the ",
-                    "class (or average the response for regression). ",
-                    "Closeness is usually determined by Euclidean distance.",
+                    # Give an overview of trees.
+                    h4("Classification Trees"),
+                    "A classification tree, or simply tree, is an algorithm ",
+                    "which recursively splits a feature space to create  ",
+                    "regions where observations are classified by the ",
+                    "most dominant class in the region. Probabilities are the ",
+                    "relative frequency of each class in a terminal node.",
                     br(),
                     br(),
-                    "Because k-NN relies on distance metrics, it is prone to",
-                    "the curse of dimensionality; points get farther apart ",
-                    "and closeness loses its meaning in high dimensions. ",
-                    "Thus, you need to keep the numbers of variables low ",
-                    "or use dimensionality reduction on the data set for best ",
-                    "performance. It is also not interpretable, because there ",
-                    "are no parameters.",
+                    "Each split is made to reduce the training error as much  ",
+                    "possible for that split; not for future splits. This  ",
+                    "makes classification trees greedy algorithms. The best ",
+                    " split at time ", tags$b("t"), 
+                    " may not be the best split for the final ",
+                    "fit. Trees are also prone to overfitting (high variance).",
+                    "They do have the benefit of being highly interpretable. ",
                     br(),
                     br(),
                     
@@ -479,11 +479,11 @@ shinyUI(navbarPage(
                         selectize = TRUE
                     ),
                     
-                    # Create a section for the k-NN parameters.
-                    h3("k-NN Parameters"),
+                    # Create a section for the tree parameters.
+                    h3("Tree Parameters"),
                     # Let the user set which variables to use.
                     selectInput(
-                        inputId = "knnVars",
+                        inputId = "treeVars",
                         label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
                         selected = c(
@@ -499,19 +499,19 @@ shinyUI(navbarPage(
                         multiple = TRUE,
                         selectize = TRUE
                     ),
-                    # Add side-by-side inputs to take in the k parameters.
-                    h4(tags$b("k:")),
+                    # Add side-by-side inputs to take in the tree parameters.
+                    h4(tags$b("Complexity Parameter:")),
                     div(
-                        uiOutput("minKInput"),  
+                        uiOutput("minCpInput"),  
                         style="display:inline-block"
                     ),
                     div(
-                        uiOutput("maxKInput"),  
+                        uiOutput("maxCpInput"),  
                         style="display:inline-block"
                     ),
                     div(
                         numericInput(
-                            inputId = "numKs",
+                            inputId = "numCps",
                             label = "# of Values", 
                             min = 1, 
                             max = 5, 
@@ -586,10 +586,10 @@ shinyUI(navbarPage(
                         inline = TRUE,
                         choiceNames = c(
                             "Logistic Regression", 
-                            "k-NN", 
+                            "Classification Tree", 
                             "Random Forest"
                             ),
-                        choiceValues = c("logReg", "knn", "randFor"),
+                        choiceValues = c("logReg", "tree", "randFor"),
                         selected = "logReg"
                         ),
                     # Add a button for fitting models.
@@ -604,8 +604,8 @@ shinyUI(navbarPage(
                         uiOutput("logRegPredInputs")
                     ),
                     conditionalPanel(
-                        condition = "input.modelType == 'knn'",
-                        uiOutput("knnPredInputs")
+                        condition = "input.modelType == 'tree'",
+                        uiOutput("treePredInputs")
                     ),
                     conditionalPanel(
                         condition = "input.modelType == 'randFor'",

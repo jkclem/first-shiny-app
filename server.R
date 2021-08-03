@@ -314,52 +314,43 @@ shinyServer(function(input, output, session) {
   # Modeling - Training
   ###
   
-  output$minKInput <- renderUI({
+  output$minCpInput <- renderUI({
     
     ###
-    # Create the input box for the min number of k in k-NN.
+    # Create the input box for the min Cp for the tree.
     ###
-    
-    # Find the smallest subsection of the data.
-    minProp <- min(input$propTesting, 1/input$numFolds)
-    # Find the maximum number of neighbors.
-    maxK <- floor(nrow(countyData) * minProp)
     
     numericInput(
-      inputId = "minK",
+      inputId = "minCp",
       label = "Min.", 
-      min = 1, 
-      max = maxK, 
-      value = 1)
+      min = 0, 
+      max = 1000, 
+      value = 0.1
+      )
   })
   
-  output$maxKInput <- renderUI({
+  output$maxCpInput <- renderUI({
     
     ###
-    # Create the input box for the max number of k in k-NN.
+    # Create the input box for the max number of Cp in the tree.
     ###
     
-    # Find the user's min k.
-    minK <- input$minK
-    # Find the smallest subsection of the data.
-    minProp <- min(input$propTesting, 1/input$numFolds)
-    
-    # Set the max number of neighbors.
-    maxK <- floor(nrow(countyData) * minProp)
+    # Find the user's min Cp.
+    minCp <- input$minCp
     
     # Start at 21.
-    value <- 21
+    value <- 10
     
-    # If the minK is greater than 21, move it up.
-    if (minK > value){
-      value <- minK
+    # If the minCp is greater than 21, move it up.
+    if (minCp > value){
+      value <- minCp
     }
     
     numericInput(
-      inputId = "maxK",
+      inputId = "maxCp",
       label = "Max.", 
-      min = minK, 
-      max = maxK, 
+      min = minCp, 
+      max = 1000, 
       value = value)
   })
   
@@ -378,7 +369,7 @@ shinyServer(function(input, output, session) {
     
     # Get the variables to use for each model.
     logRegVars <- unlist(input$logRegVars)
-    knnVars <- unlist(input$knnVars)
+    treeVars <- unlist(input$treeVars)
     randForVars <- unlist(input$randForVars)
     
     # Get the random seed, proportion of testing, and k-folds params.
@@ -386,11 +377,11 @@ shinyServer(function(input, output, session) {
     propTesting <- input$propTesting
     numFolds <- input$numFolds
     
-    # Get the number of Ks to try.
-    minK <- input$minK
-    maxK <- input$maxK
-    numKs <- input$numKs
-    ks <- round(seq(minK, maxK, length.out=numKs))
+    # Get the Cps to try.
+    minCp <- input$minCp
+    maxCp <- input$maxCp
+    numCps <- input$numCps
+    Cps <- seq(minCp, maxCp, length.out=numCps)
     
     # Get the random forest mtrys.
     randForMtry <- as.numeric(input$randForMtry)
@@ -432,15 +423,15 @@ shinyServer(function(input, output, session) {
     )
     
     # Increment the progress bar, and update the detail text.
-    progress$inc(0.4, detail = "k-NN")
+    progress$inc(0.4, detail = "Classification Tree")
     
-    # Let caret choose the best kNN through CV.
-    knnModel = train(
+    # Let caret choose the best tree through CV.
+    treeModel = train(
       Winner ~ ., 
-      data=train[, c(c("Winner"), knnVars)],
-      method="knn", 
+      data=train[, c(c("Winner"), treeVars)],
+      method="rpart", 
       metric="Accuracy",
-      tuneGrid=expand.grid(k = ks),
+      tuneGrid=expand.grid(cp = Cps),
       preProcess = c("center","scale"),
       trControl=TrControl
     )
@@ -464,7 +455,7 @@ shinyServer(function(input, output, session) {
     
     # Get test set predictions.
     logRegPreds <- predict(logRegModel, test, type="raw")
-    knnPreds <- predict(knnModel, test, type="raw")
+    treePreds <- predict(treeModel, test, type="raw")
     randForPreds <- predict(rfModel, test, type="raw")
     
     # Create the findMode function.
@@ -480,7 +471,7 @@ shinyServer(function(input, output, session) {
     accVec <- c(
       noInfoRate,
       mean(logRegPreds == test$Winner, na.rm=TRUE), 
-      mean(knnPreds == test$Winner, na.rm=TRUE), 
+      mean(treePreds == test$Winner, na.rm=TRUE), 
       mean(randForPreds == test$Winner, na.rm=TRUE)
       )
     
@@ -490,7 +481,7 @@ shinyServer(function(input, output, session) {
     colnames(accMatrix) <- c(
       "No Information Rate",
       "Logistic Regression",
-      paste0("k-NN (k = ", knnModel$bestTune$k, ")"),
+      paste0("Tree (Cp = ", treeModel$bestTune$cp, ")"),
       paste0("Random Forest (mtry = ", rfModel$bestTune$mtry, ")")
       )
     # Convert the matrix to a dataframe.
@@ -521,7 +512,7 @@ shinyServer(function(input, output, session) {
     
     # Save the fitted models in a folder.
     saveRDS(logRegModel, "./Fitted Models/logRegModel.rds")
-    saveRDS(knnModel, "./Fitted Models/knnModel.rds")
+    saveRDS(treeModel, "./Fitted Models/treeModel.rds")
     saveRDS(rfModel, "./Fitted Models/rfModel.rds")
     
   })
@@ -555,20 +546,20 @@ shinyServer(function(input, output, session) {
     ))
   })
   
-  output$knnPredInputs <- renderUI({
+  output$treePredInputs <- renderUI({
     
     ###
-    # Create a UI that lets the user input values for the k-NN model and get a 
+    # Create a UI that lets the user input values for the tree model and get a 
     # prediction.
     ###
     
     # Get the variables to use for each model.
-    knnVars <- input$knnVars
+    treeVars <- input$treeVars
     
     # Loop through the variables and create numeric input boxes for them. Use
     # the median of the variable for the default value.
     tags$ul(tagList(
-      lapply(knnVars, function(variable) {
+      lapply(treeVars, function(variable) {
         numericInput(
           inputId = paste0(variable, "Value"),
           label = paste0("Input ", variable, " Value"),
@@ -620,12 +611,12 @@ shinyServer(function(input, output, session) {
       # Load in the logistic regression model.
       myModel <- readRDS("./Fitted Models/logRegModel.rds")
       
-    } else if (modelType == "knn"){
+    } else if (modelType == "tree"){
       
-      # Get the names of the user inputs for the k-NN model.
-      varsOfInterest <- unlist(lapply(input$knnVars, paste0, sep="Value"))
-      # Load in the k-NN model.
-      myModel <- readRDS("./Fitted Models/knnModel.rds")
+      # Get the names of the user inputs for the tree model.
+      varsOfInterest <- unlist(lapply(input$treeVars, paste0, sep="Value"))
+      # Load in the tree model.
+      myModel <- readRDS("./Fitted Models/treeModel.rds")
       
     } else {
   
