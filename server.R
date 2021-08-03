@@ -18,6 +18,11 @@ fileName <- "2016 Electoral and Demographic Data - County Level.csv"
 # Read in the data.
 countyData <- read_csv(paste0(location, fileName),
                        col_types=cols())
+# Convert Winner to a factor.
+countyData %>%
+  mutate(
+    Winner = as.factor(Winner)
+  )
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
@@ -47,6 +52,8 @@ shinyServer(function(input, output, session) {
   
   # Create the output plot for the Data Exploration tab.
   output$histogram <- renderPlot({
+    
+    # Create a histogram output.
     
     # Extract the input variables associated with the histogram.
     histVar <- input$histVar
@@ -97,6 +104,8 @@ shinyServer(function(input, output, session) {
   
   # Create the output plot for the Data Exploration tab.
   output$scatter <- renderPlotly({
+    
+    # Create a scatterplot output.
     
     # Extract the input variables associated with the scatter plot.
     varXLogScale <- input$varXLogScale 
@@ -193,6 +202,8 @@ shinyServer(function(input, output, session) {
   
   output$numericSummaryTable <- renderDT({
     
+    # Output a numeric summary table of the variables of interest.
+    
     # Extract the selected states, winner, and columns.
     selectedStatesDE <- unlist(input$selectedStatesDE)
     selectedWinnerDE <- unlist(input$selectedWinnerDE)
@@ -214,6 +225,9 @@ shinyServer(function(input, output, session) {
   })
   
   output$countiesWonTable <- renderDT({
+    
+    # Output a count of the the counties won along with the population and
+    # population density of the area won.
     
     # Extract the selected states, and number of digits to round.
     selectedStatesDE <- unlist(input$selectedStatesDE)
@@ -237,7 +251,135 @@ shinyServer(function(input, output, session) {
       )
     
   })
+  
+  ###
+  # Modeling - Training
+  ###
+  
+  output$minKInput <- renderUI({
     
+    # Create the input box for the min number of k in k-NN.
+    
+    # Find the smallest subsection of the data.
+    minProp <- min(input$propTesting, 1/input$numFolds)
+    # Find the maximum number of neighbors.
+    maxK <- floor(nrow(countyData) * minProp)
+    
+    numericInput(
+      inputId = "minK",
+      label = "Min.", 
+      min = 1, 
+      max = maxK, 
+      value = 1)
+  })
+  
+  output$maxKInput <- renderUI({
+    
+    # Create the input box for the max number of k in k-NN.
+    
+    # Find the user's min k.
+    minK <- input$minK
+    # Find the smallest subsection of the data.
+    minProp <- min(input$propTesting, 1/input$numFolds)
+    
+    # Set the max number of neighbors.
+    maxK <- floor(nrow(countyData) * minProp)
+    
+    # Start at 21.
+    value <- 21
+    
+    # If the minK is greater than 21, move it up.
+    if (minK > value){
+      value <- minK
+    }
+    
+    numericInput(
+      inputId = "maxK",
+      label = "Max.", 
+      min = minK, 
+      max = maxK, 
+      value = value)
+  })
+  
+  observeEvent(input$trainStart, {
+    
+    # Test the performance of the three models.
+    
+    # Get the variables to use for each model.
+    logRegVars <- unlist(input$logRegVars)
+    knnVars <- unlist(input$knnVars)
+    randForVars <- unlist(input$randForVars)
+    
+    # Get the random seed, proportion of testing, and repeated k-folds params.
+    randSeed <- input$randSeed
+    propTesting <- input$propTesting
+    numFolds <- input$numFolds
+    numRepeats <- input$numRepeats
+    
+    # Get the number of Ks to try.
+    minK <- input$minK
+    maxK <- input$maxK
+    numKs <- input$numKs
+    ks <- seq(minK, maxK, length.out=numKs)
+    
+    # Get the random forest mtrys.
+    randForMtry <- input$randForMtry
+    
+    # Set the random seed.
+    set.seed(randSeed)
+    
+    # Get the testing indexes.
+    testInd <- sample(
+      seq_len(nrow(countyData)), 
+      size=floor(nrow(countyData)*propTesting)
+      )
+    
+    # Split into training and testing sets.
+    train <- countyData[-testInd, ]
+    test <- countyData[testInd, ]
+    
+    suppressWarnings(library(caret))
+    set.seed(21)
+    
+    # Set the repeated CV params.
+    TrControl <- trainControl(
+      method="repeatedcv",
+      number=numFolds,
+      repeats=numRepeats
+      )
+    
+    # Let caret choose the best kNN through repeated CV.
+    rfModel = train(
+      paste0("Winner ~ ", .), 
+      data=train[, c(c("Winner"), knnVars)],
+      method="rf", 
+      metric="Accuracy",
+      tuneGrid=expand.grid(mtry = randForMtry),
+      trControl=TrControl
+    )
+    
+    # Let caret choose the best random forest through repeated CV.
+    rfModel = train(
+      paste0("Winner ~ ", .), 
+      data=train[, c(c("Winner"), randForVars)],
+      method="rf", 
+      metric="Accuracy",
+      tuneGrid=expand.grid(mtry = randForMtry),
+      trControl=TrControl
+      )
+    
+    
+    # Summarize the Accuracy and Cohen's Kappa for each model 
+    # in the 5-fold CV.
+    resamp = resamples(list(LogisticRegression = logRegModel, 
+                            kNN = kNNModel,
+                            RF = rfModel))
+    
+    output$out1 <- renderDataTable(
+      datatable(resamp)
+      )
+  })
+  
   return(output)
   
 })

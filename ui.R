@@ -129,8 +129,7 @@ shinyUI(navbarPage(
                          choices = unique(countyData$State),
                          selected = unique(countyData$State),
                          multiple = TRUE,
-                         selectize = FALSE,
-                         size=5
+                         selectize = TRUE
                          ),
                      # Create a filter for the counties to display by winner.
                      selectInput(
@@ -139,8 +138,7 @@ shinyUI(navbarPage(
                          choices = c("Clinton", "Trump"),
                          selected = c("Clinton", "Trump"),
                          multiple = TRUE,
-                         selectize = FALSE,
-                         size=2
+                         selectize = TRUE
                      ),
                      # Create a filter for the columns to display.
                      selectInput(
@@ -149,8 +147,7 @@ shinyUI(navbarPage(
                          choices = colnames(countyData),
                          selected = colnames(countyData),
                          multiple = TRUE,
-                         selectize = FALSE,
-                         size=8
+                         selectize = TRUE
                      )
                  ),
             
@@ -180,8 +177,7 @@ shinyUI(navbarPage(
                          choices = unique(countyData$State),
                          selected = unique(countyData$State),
                          multiple = TRUE,
-                         selectize = FALSE,
-                         size=5
+                         selectize = TRUE
                      ),
                      # Create a filter for the counties to display by winner.
                      selectInput(
@@ -190,8 +186,7 @@ shinyUI(navbarPage(
                          choices = c("Clinton", "Trump"),
                          selected = c("Clinton", "Trump"),
                          multiple = TRUE,
-                         selectize = FALSE,
-                         size=2
+                         selectize = TRUE
                      ),
                      
                      # Add a header for this sidebar portion.
@@ -292,7 +287,7 @@ shinyUI(navbarPage(
                              choices = colnames(countyData)[3:35],
                              selected = colnames(countyData)[3:35],
                              multiple = TRUE,
-                             selectize = FALSE
+                             selectize = TRUE
                              )
                          ),
                      # Only show this panel if the summary type is countiesWon.
@@ -338,20 +333,22 @@ shinyUI(navbarPage(
                 sidebarPanel(),
                 mainPanel()
                 ),
+            
             tabPanel(
                 
                 # Add a title for the sub tab.
                 title = "Model Fitting",
                 
-                # Allow the user to set a random seed between -100 and 100.
+                # Allow the user to set a random seed between -1000 and 1000.
                 sidebarPanel(
+                    h3("Train-Test Split"),
                     numericInput(
                         inputId = "randSeed",
                         label = "Set a Random Seed",
                         value = 1,
-                        min = -100,
-                        max = 100,
-                        step = 0.05
+                        min = -1000,
+                        max = 1000,
+                        step = 1
                     ),
                 
                     # Allow the user to select the proportion of data to use for
@@ -365,67 +362,106 @@ shinyUI(navbarPage(
                         step = 0.05
                     ),
                     
+                    
+                    h3("Repeated Cross-Validation"),
+                    # Set the number of folds.
+                    div(
+                        numericInput(
+                            inputId = "numFolds",
+                            label = "Number of Folds",
+                            value = 3,
+                            min = 3,
+                            max = 5,
+                            step = 1
+                            ),
+                        style="display:inline-block"
+                    ),
+                    # Set the number of repeats.
+                    div(
+                        numericInput(
+                            inputId = "numRepeats",
+                            label = "Number of Repeats",
+                            value = 3,
+                            min = 3,
+                            max = 5,
+                            step = 1
+                        ),
+                        style="display:inline-block"
+                    ),
+                    
                     # Create a section for the logistic regression parameters.
-                    br(),
                     h3("Logistic Regression Parameters"),
                     selectInput(
                         inputId = "logRegVars",
-                        label = "Variables to Include",
+                        label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
                         selected = colnames(countyData)[3:33],
                         multiple = TRUE,
-                        selectize = FALSE,
-                        size = 5
+                        selectize = TRUE
+                    ),
+                    
+                    # Create a section for the SVM parameters.
+                    h3("k-NN Parameters"),
+                    selectInput(
+                        inputId = "knnVars",
+                        label = "Variables to Include:",
+                        choices = colnames(countyData)[3:33],
+                        selected = colnames(countyData)[3:33],
+                        multiple = TRUE,
+                        selectize = TRUE
+                    ),
+                    
+                    # Add side-by-side inputs to take in the k parameter.
+                    h4(tags$b("k:")),
+                    div(
+                        uiOutput("minKInput"),  
+                        style="display:inline-block"
+                    ),
+                    div(
+                        uiOutput("maxKInput"),  
+                        style="display:inline-block"
+                    ),
+                    div(
+                        numericInput(
+                            inputId = "numKs",
+                            label = "# of Values", 
+                            min = 1, 
+                            max = 5, 
+                            value = 3,
+                            step = 1
+                        ),  
+                        style="display:inline-block"
                     ),
                     
                     # Create a section for the random forest parameters.
-                    br(),
                     h3("Random Forest Parameters"),
                     # Let the user select which variables to use.
                     selectInput(
                         inputId = "randForVars",
-                        label = "Variables to Include",
+                        label = "Variables to Include:",
                         choices = colnames(countyData)[3:33],
                         selected = colnames(countyData)[3:33],
                         multiple = TRUE,
-                        selectize = FALSE,
-                        size = 5
+                        selectize = TRUE
                     ),
                     # Let the user select the number of variables to consider
                     # at each split.
-                    selectInput(
-                        inputId = "randForMtry",
-                        label = "Number of Variables to Consider at Each Split",
-                        choices = 1:colnames(countyData)[3:33],
+                    selectizeInput(
+                        inputId = "randForMtry", 
+                        label = "Select up to 5 values for mtry:", 
+                        choices = 1:length(colnames(countyData)[3:33]),
+                        multiple = TRUE,
                         selected = c(2, 6, 10),
-                        multiple = TRUE,
-                        selectize = FALSE,
-                        size = 5
+                        options = list(maxItems = 5)
+                        ),
+                    actionButton(
+                        inputId = "trainStart",
+                        label = "Fit Models"
+                        )
                     ),
-                    
-                    # Create a section for the SVM parameters.
-                    br(),
-                    h3("SVM Parameters"),
-                    selectInput(
-                        inputId = "svmVars",
-                        label = "Variables to Include",
-                        choices = colnames(countyData)[3:33],
-                        selected = colnames(countyData)[3:33],
-                        multiple = TRUE,
-                        selectize = FALSE,
-                        size = 5
-                    ),
-                    selectInput(
-                        inputId = "svmVars",
-                        label = "Variables to Include",
-                        choices = colnames(countyData)[3:33],
-                        selected = colnames(countyData)[3:33],
-                        multiple = TRUE,
-                        selectize = FALSE,
-                        size = 5
+                mainPanel(
+                    dataTableOutput("out1")
                     )
-                ),
-                mainPanel()
                 ),
             tabPanel(
                 title = "Prediction",
